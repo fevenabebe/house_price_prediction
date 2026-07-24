@@ -1,0 +1,41 @@
+{
+  "numeric_features": [
+    "model_year",
+    "mileage",
+    "accident",
+    "clean_title",
+    "car_age",
+    "mileage_per_year",
+    "is_luxury_brand",
+    "is_premium_fuel"
+  ],
+  "categorical_features": [
+    "brand",
+    "model",
+    "fuel_type",
+    "engine",
+    "transmission",
+    "ext_col",
+    "int_col",
+    "vehicle_age_category"
+  ],
+  "all_features": [
+    "model_year",
+    "mileage",
+    "accident",
+    "clean_title",
+    "car_age",
+    "mileage_per_year",
+    "is_luxury_brand",
+    "is_premium_fuel",
+    "brand",
+    "model",
+    "fuel_type",
+    "engine",
+    "transmission",
+    "ext_col",
+    "int_col",
+    "vehicle_age_category"
+  ],
+  "best_model": "Lasso Regression"
+}
