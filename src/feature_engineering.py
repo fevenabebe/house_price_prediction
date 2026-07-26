@@ -1,84 +1,207 @@
-"""Feature engineering for used car price prediction."""
+"""Feature engineering for Ames Housing price prediction."""
 
 from __future__ import annotations
 
 import pandas as pd
 
-from src.utils import CURRENT_YEAR, LUXURY_BRANDS, PREMIUM_FUEL_TYPES
 
 
-def add_car_age(df: pd.DataFrame, current_year: int = CURRENT_YEAR) -> pd.DataFrame:
-    """Add car_age = current_year - model_year."""
-    engineered = df.copy()
-    if "model_year" in engineered.columns:
-        engineered["car_age"] = current_year - engineered["model_year"]
-        engineered["car_age"] = engineered["car_age"].clip(lower=0)
-    return engineered
-
-
-def add_vehicle_age_category(df: pd.DataFrame) -> pd.DataFrame:
+def add_total_sf(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Categorize vehicles by age.
+    Add total square footage feature.
 
-    Categories: new (0-3), recent (4-7), mature (8-12), old (13+).
+    Combines:
+    - Total basement area
+    - First floor area
+    - Second floor area
     """
+
     engineered = df.copy()
-    if "car_age" not in engineered.columns:
-        engineered = add_car_age(engineered)
 
-    bins = [-1, 3, 7, 12, 100]
-    labels = ["new", "recent", "mature", "old"]
-    engineered["vehicle_age_category"] = pd.cut(
-        engineered["car_age"], bins=bins, labels=labels
-    ).astype(str)
-    return engineered
+    required_cols = [
+        "TotalBsmtSF",
+        "1stFlrSF",
+        "2ndFlrSF"
+    ]
 
+    if all(col in engineered.columns for col in required_cols):
 
-def add_mileage_per_year(df: pd.DataFrame) -> pd.DataFrame:
-    """Add mileage_per_year = mileage / max(car_age, 1)."""
-    engineered = df.copy()
-    if "car_age" not in engineered.columns:
-        engineered = add_car_age(engineered)
-    if "mileage" in engineered.columns:
-        age_denominator = engineered["car_age"].clip(lower=1)
-        engineered["mileage_per_year"] = engineered["mileage"] / age_denominator
-    return engineered
-
-
-def add_luxury_brand_flag(df: pd.DataFrame) -> pd.DataFrame:
-    """Add binary is_luxury_brand based on known luxury manufacturers."""
-    engineered = df.copy()
-    if "brand" in engineered.columns:
-        brand_lower = engineered["brand"].astype(str).str.lower()
-        luxury_lower = {b.lower() for b in LUXURY_BRANDS}
-        engineered["is_luxury_brand"] = brand_lower.isin(luxury_lower).astype(int)
-    return engineered
-
-
-def add_premium_fuel_flag(df: pd.DataFrame) -> pd.DataFrame:
-    """Add binary is_premium_fuel for premium/hybrid/electric fuel types."""
-    engineered = df.copy()
-    if "fuel_type" in engineered.columns:
-        fuel_lower = engineered["fuel_type"].astype(str).str.lower().str.strip()
-        engineered["is_premium_fuel"] = fuel_lower.isin(PREMIUM_FUEL_TYPES).astype(int)
-        # Also flag hybrid/electric keywords not in exact set
-        keyword_match = fuel_lower.str.contains(
-            r"hybrid|electric|diesel|premium", na=False, regex=True
+        engineered["TotalSF"] = (
+            engineered["TotalBsmtSF"]
+            + engineered["1stFlrSF"]
+            + engineered["2ndFlrSF"]
         )
-        engineered.loc[keyword_match, "is_premium_fuel"] = 1
+
     return engineered
 
 
-def engineer_features(df: pd.DataFrame, current_year: int = CURRENT_YEAR) -> pd.DataFrame:
-    """
-    Apply all feature engineering steps without target leakage.
 
-    Only uses input features available at prediction time.
+def add_total_bathrooms(df: pd.DataFrame) -> pd.DataFrame:
     """
+    Add weighted total bathrooms.
+
+    Full bathrooms have higher contribution than half bathrooms.
+    """
+
     engineered = df.copy()
-    engineered = add_car_age(engineered, current_year=current_year)
-    engineered = add_vehicle_age_category(engineered)
-    engineered = add_mileage_per_year(engineered)
-    engineered = add_luxury_brand_flag(engineered)
-    engineered = add_premium_fuel_flag(engineered)
+
+    required_cols = [
+        "FullBath",
+        "HalfBath",
+        "BsmtFullBath",
+        "BsmtHalfBath"
+    ]
+
+    if all(col in engineered.columns for col in required_cols):
+
+        engineered["TotalBathrooms"] = (
+            engineered["FullBath"]
+            + 0.5 * engineered["HalfBath"]
+            + engineered["BsmtFullBath"]
+            + 0.5 * engineered["BsmtHalfBath"]
+        )
+
+    return engineered
+
+
+
+def add_house_age(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add house age at time of sale.
+
+    Older houses may have different pricing patterns.
+    """
+
+    engineered = df.copy()
+
+    if "YearBuilt" in engineered.columns and "YrSold" in engineered.columns:
+
+        engineered["HouseAge"] = (
+            engineered["YrSold"]
+            - engineered["YearBuilt"]
+        )
+
+    return engineered
+
+
+
+def add_year_since_remodel(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add years since last remodeling.
+    """
+
+    engineered = df.copy()
+
+    if "YearRemodAdd" in engineered.columns and "YrSold" in engineered.columns:
+
+        engineered["YearsSinceRemodel"] = (
+            engineered["YrSold"]
+            - engineered["YearRemodAdd"]
+        )
+
+    return engineered
+
+
+
+def add_total_porch_area(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Combine outdoor living areas.
+    """
+
+    engineered = df.copy()
+
+    porch_columns = [
+        "OpenPorchSF",
+        "EnclosedPorch",
+        "3SsnPorch",
+        "ScreenPorch",
+        "WoodDeckSF"
+    ]
+
+    available_cols = [
+        col for col in porch_columns
+        if col in engineered.columns
+    ]
+
+    if available_cols:
+
+        engineered["TotalPorchSF"] = (
+            engineered[available_cols]
+            .sum(axis=1)
+        )
+
+    return engineered
+
+
+
+def add_total_quality_score(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Combine important quality-related ordinal features.
+
+    Uses:
+    - OverallQual
+    - OverallCond
+    """
+
+    engineered = df.copy()
+
+    if (
+        "OverallQual" in engineered.columns
+        and "OverallCond" in engineered.columns
+    ):
+
+        engineered["OverallScore"] = (
+            engineered["OverallQual"]
+            * engineered["OverallCond"]
+        )
+
+    return engineered
+
+
+
+def add_total_rooms(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Combine bedrooms and total rooms.
+    """
+
+    engineered = df.copy()
+
+    if (
+        "TotRmsAbvGrd" in engineered.columns
+        and "BedroomAbvGr" in engineered.columns
+    ):
+
+        engineered["TotalRooms"] = (
+            engineered["TotRmsAbvGrd"]
+            + engineered["BedroomAbvGr"]
+        )
+
+    return engineered
+
+
+
+def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Apply all feature engineering steps.
+
+    Features are created only from input variables
+    to avoid target leakage.
+    """
+
+    engineered = df.copy()
+
+    engineered = add_total_sf(engineered)
+
+    engineered = add_total_bathrooms(engineered)
+
+    engineered = add_house_age(engineered)
+
+    engineered = add_year_since_remodel(engineered)
+
+    engineered = add_total_porch_area(engineered)
+
+    engineered = add_total_quality_score(engineered)
+
+    engineered = add_total_rooms(engineered)
+
     return engineered
