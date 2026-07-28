@@ -1,27 +1,24 @@
-# Model Comparison Report
+# Regression Model Comparison
 
-**Best Model:** Lasso Regression
+## Best Model: Gradient Boosting
 
-## Selection Criteria
+Models are compared using:
+- MAE (lower is better)
+- MSE (lower is better)
+- RMSE (lower is better)
+- R² Score (higher is better)
+- Training time
 
-The best model is selected using a composite score that weights:
-- RMSE (40%)
-- MAE (35%)
-- R² (15%)
-- Training time (10%)
+## Results
 
-## Leaderboard
-
-| Rank | Model | RMSE | MAE | R² | Train Time (s) | Predict Time (s) |
-|------|-------|------|-----|----|----------------|------------------|
-| 1 | Gradient Boosting Regressor | $28,036 | $12,328 | 0.6495 | 31.392 | 0.0754 |
-| 2 | Lasso Regression ⭐ | $28,207 | $9,878 | 0.6452 | 8.475 | 0.0389 |
-| 3 | Ridge Regression | $28,250 | $11,031 | 0.6442 | 0.901 | 0.0584 |
-| 4 | Random Forest Regressor | $28,764 | $12,404 | 0.6311 | 5.498 | 0.0561 |
-| 5 | Decision Tree Regressor | $29,078 | $13,608 | 0.6230 | 0.330 | 0.0261 |
-| 6 | Linear Regression | $30,914 | $13,192 | 0.5739 | 11.048 | 0.0325 |
-| 7 | Support Vector Regressor | $45,140 | $19,262 | 0.0914 | 15.325 | 5.4723 |
-
-## Summary
-
-The **Lasso Regression** model achieved the best balance of accuracy (RMSE=$28,207, MAE=$9,878, R²=0.6452) and training efficiency among all evaluated algorithms.
+| Model | MAE | MSE | RMSE | R² | Training Time |
+|---|---|---|---|---|---|
+| Gradient Boosting ⭐ | 14915.50 | 463636566.09 | 21532.22 | 0.9161 | 2.2940s |
+| Tuned Gradient Boosting | 14877.04 | 467341577.00 | 21618.08 | 0.9154 | 8.0873s |
+| Ridge Regression | 16118.13 | 513241552.77 | 22654.84 | 0.9071 | 0.3158s |
+| Random Forest | 16723.76 | 641019034.19 | 25318.35 | 0.8840 | 6.2082s |
+| Tuned Random Forest | 16723.76 | 641019034.19 | 25318.35 | 0.8840 | 13.4635s |
+| Lasso Regression | 18524.24 | 1539946622.15 | 39242.15 | 0.7212 | 14.5037s |
+| Linear Regression | 18498.84 | 1542900654.99 | 39279.77 | 0.7207 | 1.3817s |
+| Decision Tree | 25428.19 | 1853150877.64 | 43048.24 | 0.6645 | 0.4043s |
+| SVR | 57038.85 | 5879954064.47 | 76680.86 | -0.0645 | 0.6967s |

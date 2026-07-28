@@ -1,73 +1,90 @@
 {
-  "best_model": "Lasso Regression",
-  "model_path": "/Users/mac/Documents/PERSONAL/car-prediction/used-car-price-prediction/models/best_model.pkl",
-  "metrics_path": "/Users/mac/Documents/PERSONAL/car-prediction/used-car-price-prediction/outputs/metrics/comparison.csv",
-  "eda_figures": 14,
-  "n_train": 3200,
-  "n_test": 801,
-  "metrics": [
-    {
-      "mae": 13192.231009634494,
-      "mse": 955645304.4117165,
-      "rmse": 30913.513297775076,
-      "r2": 0.573892962524456,
-      "train_time_sec": 11.04846712499966,
-      "predict_time_sec": 0.032526500001040404,
-      "model": "Linear Regression"
-    },
-    {
-      "mae": 11030.577389968677,
-      "mse": 798052777.7658757,
-      "rmse": 28249.827924535675,
-      "r2": 0.644160962950286,
-      "train_time_sec": 0.9009301250007411,
-      "predict_time_sec": 0.058375083999635535,
-      "model": "Ridge Regression"
-    },
-    {
-      "mae": 9878.297445460834,
-      "mse": 795624492.4629797,
-      "rmse": 28206.816418429422,
-      "r2": 0.6452436967342389,
-      "train_time_sec": 8.475297667000632,
-      "predict_time_sec": 0.03889175000040268,
-      "model": "Lasso Regression"
-    },
-    {
-      "mae": 13608.239880713929,
-      "mse": 845532900.8377898,
-      "rmse": 29078.048435852597,
-      "r2": 0.6229903314536955,
-      "train_time_sec": 0.3298537499995291,
-      "predict_time_sec": 0.026054457999634906,
-      "model": "Decision Tree Regressor"
-    },
-    {
-      "mae": 12404.264883945072,
-      "mse": 827367417.7544235,
-      "rmse": 28763.99516330135,
-      "r2": 0.6310900313582855,
-      "train_time_sec": 5.497811709001326,
-      "predict_time_sec": 0.056100291998518514,
-      "model": "Random Forest Regressor"
-    },
-    {
-      "mae": 12327.908455666447,
-      "mse": 785989725.4617949,
-      "rmse": 28035.50829683305,
-      "r2": 0.6495396860565212,
-      "train_time_sec": 31.392288584000198,
-      "predict_time_sec": 0.07539712500147289,
-      "model": "Gradient Boosting Regressor"
-    },
-    {
-      "mae": 19262.415373168787,
-      "mse": 2037663874.470786,
-      "rmse": 45140.49041017151,
-      "r2": 0.09143809642200118,
-      "train_time_sec": 15.32468158300071,
-      "predict_time_sec": 5.472327958001188,
-      "model": "Support Vector Regressor"
-    }
-  ]
+    "final_model": "Gradient Boosting",
+    "model_path": "C:\\Users\\dania\\OneDrive\\Desktop\\house-price-prediction\\models\\best_model.pkl",
+    "metrics_path": "C:\\Users\\dania\\OneDrive\\Desktop\\house-price-prediction\\outputs\\reports\\comparison.csv",
+    "n_train": 1166,
+    "n_test": 292,
+    "metrics": [
+        {
+            "mae": 18498.84153822261,
+            "mse": 1542900654.9882584,
+            "rmse": 39279.77412089151,
+            "r2": 0.7206776231200884,
+            "train_time_sec": 1.3817,
+            "predict_time_sec": 0.1589,
+            "model": "Linear Regression"
+        },
+        {
+            "mae": 16118.134993110512,
+            "mse": 513241552.7736484,
+            "rmse": 22654.835085995404,
+            "r2": 0.9070841988621989,
+            "train_time_sec": 0.3158,
+            "predict_time_sec": 0.065,
+            "model": "Ridge Regression"
+        },
+        {
+            "mae": 18524.24497691438,
+            "mse": 1539946622.14529,
+            "rmse": 39242.153637960415,
+            "r2": 0.7212124128827421,
+            "train_time_sec": 14.5037,
+            "predict_time_sec": 0.0581,
+            "model": "Lasso Regression"
+        },
+        {
+            "mae": 25428.188356164384,
+            "mse": 1853150877.640411,
+            "rmse": 43048.23896096576,
+            "r2": 0.664510799067907,
+            "train_time_sec": 0.4043,
+            "predict_time_sec": 0.0558,
+            "model": "Decision Tree"
+        },
+        {
+            "mae": 16723.755462328765,
+            "mse": 641019034.1878479,
+            "rmse": 25318.353702163335,
+            "r2": 0.8839517245159394,
+            "train_time_sec": 6.2082,
+            "predict_time_sec": 0.1715,
+            "model": "Random Forest"
+        },
+        {
+            "mae": 14915.503541327598,
+            "mse": 463636566.0855707,
+            "rmse": 21532.221578034412,
+            "r2": 0.9160645455501168,
+            "train_time_sec": 2.294,
+            "predict_time_sec": 0.051,
+            "model": "Gradient Boosting"
+        },
+        {
+            "mae": 57038.85318055675,
+            "mse": 5879954064.473187,
+            "rmse": 76680.85852723083,
+            "r2": -0.0644902767546276,
+            "train_time_sec": 0.6967,
+            "predict_time_sec": 0.2895,
+            "model": "SVR"
+        },
+        {
+            "mae": 14877.035080963044,
+            "mse": 467341576.9965258,
+            "rmse": 21618.08448953158,
+            "r2": 0.9153938008390636,
+            "train_time_sec": 8.0873,
+            "predict_time_sec": 0.0958,
+            "model": "Tuned Gradient Boosting"
+        },
+        {
+            "mae": 16723.755462328765,
+            "mse": 641019034.1878479,
+            "rmse": 25318.353702163335,
+            "r2": 0.8839517245159394,
+            "train_time_sec": 13.4635,
+            "predict_time_sec": 0.1059,
+            "model": "Tuned Random Forest"
+        }
+    ]
 }

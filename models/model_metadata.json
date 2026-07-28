@@ -1,4 +1,4 @@
 {
-  "model_name": "Lasso Regression",
-  "target_column": "price"
+    "model_name": "Gradient Boosting",
+    "target_column": "SalePrice"
 }
