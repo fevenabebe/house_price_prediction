@@ -20,19 +20,38 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 DATA_DIR = PROJECT_ROOT / "data"
+
 MODELS_DIR = PROJECT_ROOT / "models"
 
+
 OUTPUTS_DIR = PROJECT_ROOT / "outputs"
+
 FIGURES_DIR = OUTPUTS_DIR / "figures"
+
 METRICS_DIR = OUTPUTS_DIR / "metrics"
+
 REPORTS_DIR = OUTPUTS_DIR / "reports"
+
+EDA_FIGURES_DIR = FIGURES_DIR / "eda"
+
+
+
+# Figure subfolders
+
+EVALUATION_FIGURES_DIR = (
+    FIGURES_DIR / "evaluation"
+)
+
+
+MODEL_ANALYSIS_FIGURES_DIR = (
+    FIGURES_DIR / "model_analysis"
+)
+
 
 
 # Ames Housing target column
+
 TARGET_COLUMN = "SalePrice"
-
-
-
 # ============================================================
 # PATH UTILITIES
 # ============================================================
