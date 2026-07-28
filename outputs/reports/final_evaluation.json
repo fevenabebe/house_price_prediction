@@ -1,0 +1,9 @@
+{
+    "mae": 14915.503541327598,
+    "mse": 463636566.0855707,
+    "rmse": 21532.221578034412,
+    "r2": 0.9160645455501168,
+    "train_time_sec": 0.0,
+    "predict_time_sec": 0.0,
+    "model": "Gradient Boosting"
+}
