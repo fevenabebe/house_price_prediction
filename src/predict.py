@@ -1,7 +1,10 @@
-"""Inference utilities for used car price prediction."""
+"""
+Prediction utilities for House Price Prediction web application.
+"""
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -9,111 +12,307 @@ import joblib
 import pandas as pd
 
 from src.feature_engineering import engineer_features
-from src.preprocessing import clean_dataframe
-from src.utils import MODELS_DIR, TARGET_COLUMN
+from src.utils import MODELS_DIR
 
 
-def load_model(model_path: Path | None = None) -> dict[str, Any]:
+
+# ============================================================
+# MODEL LOADING
+# ============================================================
+
+
+def load_model(
+    model_path: Path | None = None
+) -> dict[str, Any]:
     """
-    Load saved model bundle from disk.
-
-    Returns dict with 'model' (Pipeline) and 'metadata'.
+    Load trained regression model bundle.
     """
-    path = model_path or (MODELS_DIR / "best_model.pkl")
+
+    path = (
+        model_path
+        if model_path
+        else MODELS_DIR / "best_model.pkl"
+    )
+
+
     if not path.exists():
-        raise FileNotFoundError(f"Model not found at {path}. Run training first.")
+
+        raise FileNotFoundError(
+            f"Model not found: {path}. "
+            "Run training first."
+        )
+
+
     return joblib.load(path)
 
 
+
+# ============================================================
+# FEATURE INFORMATION
+# ============================================================
+
+
 def load_feature_info() -> dict[str, Any]:
-    """Load feature column metadata saved during training."""
-    import json
-    info_path = MODELS_DIR / "feature_info.json"
-    if not info_path.exists():
-        raise FileNotFoundError("Feature info not found. Run training first.")
-    with info_path.open("r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def prepare_input(raw_input: dict[str, Any]) -> pd.DataFrame:
     """
-    Prepare a single prediction input from raw feature dict.
-
-    Applies cleaning (without dropping target) and feature engineering.
+    Load feature metadata saved during training.
     """
-    df = pd.DataFrame([raw_input])
 
-    # Apply parsing without full clean pipeline (no target to drop)
-    from src.preprocessing import (
-        parse_accident,
-        parse_clean_title,
-        parse_mileage,
-        parse_model_year,
-        normalize_text,
-        trim_whitespace,
+    path = (
+        MODELS_DIR /
+        "feature_info.json"
     )
 
-    if "milage" in df.columns and "mileage" not in df.columns:
-        df = df.rename(columns={"milage": "mileage"})
 
-    df = trim_whitespace(df)
-    df = normalize_text(df)
+    if not path.exists():
 
-    if "mileage" in df.columns:
-        df["mileage"] = parse_mileage(df["mileage"])
-    if "model_year" in df.columns:
-        df["model_year"] = parse_model_year(df["model_year"])
-    if "clean_title" in df.columns:
-        df["clean_title"] = parse_clean_title(df["clean_title"])
-    if "accident" in df.columns:
-        df["accident"] = parse_accident(df["accident"])
+        raise FileNotFoundError(
+            "feature_info.json not found. "
+            "Run training first."
+        )
 
-    df = engineer_features(df)
+
+    with open(
+        path,
+        "r",
+        encoding="utf-8"
+    ) as file:
+
+        return json.load(file)
+
+
+
+# ============================================================
+# INPUT PREPARATION
+# ============================================================
+
+
+def prepare_input(
+    raw_input: dict[str, Any]
+) -> pd.DataFrame:
+    """
+    Prepare one house input for prediction.
+
+    Steps:
+    1. Convert dictionary to dataframe
+    2. Apply feature engineering
+    3. Match training features
+    """
+
+
+    df = pd.DataFrame(
+        [raw_input]
+    )
+
+
+    # Apply same feature engineering
+    # used during training
+
+    df = engineer_features(
+        df
+    )
+
 
     feature_info = load_feature_info()
-    all_features = feature_info["all_features"]
-    for col in all_features:
+
+
+    required_features = (
+        feature_info["all_features"]
+    )
+
+
+    numerical_features = (
+        feature_info["numerical_features"]
+    )
+
+
+
+    # Add missing columns
+
+    for col in required_features:
+
         if col not in df.columns:
-            df[col] = 0 if col in feature_info["numeric_features"] else "unknown"
 
-    return df[all_features]
+            if col in numerical_features:
+
+                df[col] = 0
+
+            else:
+
+                df[col] = "None"
 
 
-def predict_price(raw_input: dict[str, Any], model_path: Path | None = None) -> float:
+
+    # Keep same order as training
+
+    df = df[
+        required_features
+    ]
+
+
+    return df
+
+
+
+# ============================================================
+# SINGLE PREDICTION
+# ============================================================
+
+
+def predict_price(
+    raw_input: dict[str, Any],
+    model_path: Path | None = None
+) -> float:
     """
-    Predict used car price from raw feature dictionary.
+    Predict house sale price.
 
     Parameters
     ----------
-    raw_input : dict
-        Feature name to value mapping (same columns as training data minus price).
-    model_path : Path, optional
-        Path to saved model pickle.
+    raw_input:
+        Dictionary containing house features.
 
     Returns
     -------
-    float
-        Predicted price in dollars.
+    float:
+        Predicted SalePrice.
     """
-    bundle = load_model(model_path)
+
+
+    bundle = load_model(
+        model_path
+    )
+
+
     model = bundle["model"]
-    X = prepare_input(raw_input)
-    prediction = model.predict(X)[0]
-    return float(max(prediction, 0))
 
 
-def predict_batch(df: pd.DataFrame, model_path: Path | None = None) -> pd.Series:
-    """Predict prices for a batch of raw inputs."""
-    bundle = load_model(model_path)
+    X = prepare_input(
+        raw_input
+    )
+
+
+    prediction = model.predict(
+        X
+    )[0]
+
+
+    # Prevent negative prices
+
+    prediction = max(
+        prediction,
+        0
+    )
+
+
+    return float(
+        prediction
+    )
+
+
+
+# ============================================================
+# BATCH PREDICTION
+# ============================================================
+
+
+def predict_batch(
+    df: pd.DataFrame,
+    model_path: Path | None = None
+) -> pd.Series:
+    """
+    Predict prices for multiple houses.
+    """
+
+
+    bundle = load_model(
+        model_path
+    )
+
+
     model = bundle["model"]
-    feature_info = load_feature_info()
-    all_features = feature_info["all_features"]
 
-    processed_rows = []
+
+
+    processed = []
+
+
     for _, row in df.iterrows():
-        processed = prepare_input(row.to_dict())
-        processed_rows.append(processed.iloc[0])
 
-    X = pd.DataFrame(processed_rows)[all_features]
-    predictions = model.predict(X)
-    return pd.Series(predictions, index=df.index, name="predicted_price")
+        processed.append(
+
+            prepare_input(
+                row.to_dict()
+            ).iloc[0]
+
+        )
+
+
+
+    X = pd.DataFrame(
+        processed
+    )
+
+
+
+    predictions = model.predict(
+        X
+    )
+
+
+
+    return pd.Series(
+        predictions,
+        index=df.index,
+        name="Predicted_SalePrice"
+    )
+if __name__ == "__main__":
+
+    sample_house = {
+
+        "MSSubClass": 60,
+        "MSZoning": "RL",
+        "LotArea": 8450,
+        "Street": "Pave",
+        "LotShape": "Reg",
+        "LandContour": "Lvl",
+        "Utilities": "AllPub",
+        "LotConfig": "Inside",
+        "LandSlope": "Gtl",
+        "Neighborhood": "CollgCr",
+        "BldgType": "1Fam",
+        "HouseStyle": "2Story",
+        "OverallQual": 7,
+        "OverallCond": 5,
+        "YearBuilt": 2003,
+        "YearRemodAdd": 2003,
+        "TotalBsmtSF": 856,
+        "1stFlrSF": 856,
+        "2ndFlrSF": 854,
+        "GrLivArea": 1710,
+        "FullBath": 2,
+        "HalfBath": 1,
+        "BedroomAbvGr": 3,
+        "KitchenAbvGr": 1,
+        "KitchenQual": "Gd",
+        "TotRmsAbvGrd": 8,
+        "Fireplaces": 0,
+        "GarageCars": 2,
+        "GarageArea": 548,
+        "GarageType": "Attchd",
+        "GarageYrBlt": 2003,
+        "GarageFinish": "RFn",
+        "GarageQual": "TA",
+        "GarageCond": "TA",
+        "PavedDrive": "Y",
+        "SaleType": "WD",
+        "SaleCondition": "Normal"
+    }
+
+
+    prediction = predict_price(
+        sample_house
+    )
+
+
+    print(
+        f"Predicted House Price: ${prediction:,.2f}"
+    )
