@@ -1,4 +1,6 @@
-"""Data cleaning and preprocessing functions for Ames Housing dataset."""
+"""
+Data cleaning and preprocessing functions for Ames Housing dataset.
+"""
 
 from __future__ import annotations
 
@@ -13,23 +15,31 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from src.utils import TARGET_COLUMN
 
 
+# ============================================================
+# DATA CLEANING FUNCTIONS
+# ============================================================
+
+
 def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Remove duplicate rows from the dataframe.
+    Remove duplicate rows from dataframe.
     """
+
     return df.drop_duplicates().reset_index(drop=True)
+
 
 
 def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Remove domain-specific outliers identified during EDA.
+    Remove known Ames Housing anomalies identified during EDA.
 
-    During exploratory analysis, two houses were identified with:
-    - Extremely large living area (>4500 sq ft)
-    - Unusually low SalePrice (<300000)
+    Removes houses with:
+    - GrLivArea > 4500 sq ft
+    - SalePrice < 300000
 
-    These observations were removed because they can negatively
-    influence regression models.
+    These observations have unusually large living areas
+    but disproportionately low prices and can negatively
+    affect regression models.
     """
 
     cleaned = df.copy()
@@ -39,13 +49,14 @@ def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
         and "GrLivArea" in cleaned.columns
     ):
 
-        outliers = (
+        outlier_condition = (
             (cleaned["GrLivArea"] > 4500)
             &
             (cleaned[TARGET_COLUMN] < 300000)
         )
 
-        cleaned = cleaned.loc[~outliers]
+        cleaned = cleaned.loc[~outlier_condition]
+
 
     return cleaned.reset_index(drop=True)
 
@@ -53,30 +64,34 @@ def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
 
 def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Handle missing values using domain knowledge from EDA.
+    Handle missing values using Ames Housing domain knowledge.
 
-    Categorical:
-    - Missing values in features representing absence
-      are replaced with "None".
-
-    Numerical:
-    - Missing values are replaced with median values.
-
-    Target:
-    - Rows with missing SalePrice are removed.
+    Strategy:
+    - Remove rows with missing target values.
+    - Replace missing categorical features where absence
+      represents no existing feature with 'None'.
+    - Fill numerical missing values using median.
+    - Fill remaining categorical missing values with 'None'.
     """
 
     cleaned = df.copy()
 
 
-    # Remove missing target rows
+    # --------------------------------------------------------
+    # Remove missing target values
+    # --------------------------------------------------------
+
     if TARGET_COLUMN in cleaned.columns:
+
         cleaned = cleaned.dropna(
             subset=[TARGET_COLUMN]
         )
 
 
-    # Missing categorical values indicating absence
+    # --------------------------------------------------------
+    # Missing categorical values meaning "feature absent"
+    # --------------------------------------------------------
+
     none_columns = [
         "Alley",
         "MasVnrType",
@@ -97,11 +112,17 @@ def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
 
 
     for col in none_columns:
+
         if col in cleaned.columns:
+
             cleaned[col] = cleaned[col].fillna("None")
 
 
-    # Numerical columns where median is appropriate
+
+    # --------------------------------------------------------
+    # Numerical columns
+    # --------------------------------------------------------
+
     median_columns = [
         "LotFrontage",
         "MasVnrArea",
@@ -110,23 +131,34 @@ def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
 
 
     for col in median_columns:
+
         if col in cleaned.columns:
+
             cleaned[col] = cleaned[col].fillna(
                 cleaned[col].median()
             )
 
 
+
+    # --------------------------------------------------------
     # Remaining categorical missing values
+    # --------------------------------------------------------
+
     categorical_columns = cleaned.select_dtypes(
         include=["object", "string"]
     ).columns
 
 
     for col in categorical_columns:
+
         cleaned[col] = cleaned[col].fillna("None")
 
 
+
+    # --------------------------------------------------------
     # Remaining numerical missing values
+    # --------------------------------------------------------
+
     numerical_columns = cleaned.select_dtypes(
         include=[np.number]
     ).columns
@@ -135,6 +167,7 @@ def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
     for col in numerical_columns:
 
         if col != TARGET_COLUMN:
+
             cleaned[col] = cleaned[col].fillna(
                 cleaned[col].median()
             )
@@ -146,12 +179,12 @@ def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
 
 def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Complete preprocessing cleaning pipeline.
+    Complete dataframe cleaning pipeline.
 
     Steps:
-    1. Remove EDA-identified outliers
-    2. Handle missing values
-    3. Remove duplicate rows
+    1. Remove known outliers.
+    2. Handle missing values.
+    3. Remove duplicates.
     """
 
     cleaned = df.copy()
@@ -162,22 +195,30 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
     cleaned = remove_duplicates(cleaned)
 
-    return cleaned
+    return cleaned.reset_index(drop=True)
 
+
+
+# ============================================================
+# FEATURE TYPE DETECTION
+# ============================================================
 
 
 def get_feature_columns(
     df: pd.DataFrame
 ) -> tuple[list[str], list[str]]:
     """
-    Split dataframe columns into numerical and categorical features.
+    Separate numerical and categorical features.
 
-    The target column is excluded.
+    Excludes:
+    - Target variable SalePrice
+    - Id column because it is only an identifier.
     """
 
     feature_columns = [
-        col for col in df.columns
-        if col != TARGET_COLUMN
+        col
+        for col in df.columns
+        if col not in [TARGET_COLUMN, "Id"]
     ]
 
 
@@ -190,13 +231,19 @@ def get_feature_columns(
 
 
     categorical_features = [
-        col for col in feature_columns
+        col
+        for col in feature_columns
         if col not in numerical_features
     ]
 
 
     return numerical_features, categorical_features
 
+
+
+# ============================================================
+# SKLEARN PREPROCESSING PIPELINE
+# ============================================================
 
 
 def build_preprocessor(
@@ -207,42 +254,44 @@ def build_preprocessor(
     """
     Build sklearn preprocessing pipeline.
 
-    Numerical features:
+    Numerical:
     - Median imputation
-    - Optional standard scaling
+    - Optional StandardScaler
 
-    Categorical features:
+    Categorical:
     - Most frequent imputation
     - One-hot encoding
 
-    Parameters
-    ----------
-    numerical_features:
-        List of numerical feature names.
+    Scaling is used for:
+    - Linear Regression
+    - Ridge
+    - Lasso
+    - SVR
 
-    categorical_features:
-        List of categorical feature names.
-
-    scale_numeric:
-        True for Linear Regression/SVR models.
-        False for tree-based models.
+    Tree-based models do not require scaling.
     """
 
-
     numerical_steps = [
+
         (
             "imputer",
-            SimpleImputer(strategy="median")
+            SimpleImputer(
+                strategy="median"
+            )
         )
+
     ]
 
 
     if scale_numeric:
+
         numerical_steps.append(
+
             (
                 "scaler",
                 StandardScaler()
             )
+
         )
 
 
@@ -252,13 +301,16 @@ def build_preprocessor(
 
 
     categorical_pipeline = Pipeline(
+
         steps=[
+
             (
                 "imputer",
                 SimpleImputer(
                     strategy="most_frequent"
                 )
             ),
+
             (
                 "encoder",
                 OneHotEncoder(
@@ -266,7 +318,9 @@ def build_preprocessor(
                     sparse_output=False
                 )
             )
+
         ]
+
     )
 
 
@@ -274,26 +328,35 @@ def build_preprocessor(
 
 
     if numerical_features:
+
         transformers.append(
+
             (
                 "num",
                 numerical_pipeline,
                 numerical_features
             )
+
         )
 
 
     if categorical_features:
+
         transformers.append(
+
             (
                 "cat",
                 categorical_pipeline,
                 categorical_features
             )
+
         )
 
 
     return ColumnTransformer(
+
         transformers=transformers,
+
         remainder="drop"
+
     )
