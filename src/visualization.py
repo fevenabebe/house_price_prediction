@@ -5,7 +5,6 @@ and regression model evaluation.
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from typing import Any
 
@@ -24,15 +23,6 @@ from src.utils import (
 # ============================================================
 # INTERNAL HELPERS
 # ============================================================
-
-
-def _safe_name(name: str) -> str:
-    """
-    Convert an arbitrary model name into a filesystem-safe string
-    (used for building output filenames).
-    """
-
-    return re.sub(r"\W+", "_", name).strip("_").lower()
 
 
 def _save_fig(
@@ -356,13 +346,11 @@ def plot_all_numeric_vs_target(
     plt.tight_layout(rect=[0, 0, 1, 0.98])
 
     return _save_fig("all_numeric_vs_target")
-
-
 def plot_all_categorical_vs_target(
     df: pd.DataFrame,
     target: str = TARGET_COLUMN,
     cols: int = 2,
-) -> Path | None:
+) -> Path:
     """
     Plot all categorical features against the target variable.
     """
@@ -438,7 +426,6 @@ def plot_saleprice_distribution(df: pd.DataFrame) -> Path:
     plt.ylabel("Frequency")
 
     return _save_fig("saleprice_distribution")
-
 
 def generate_all_eda_figures(
     df: pd.DataFrame
@@ -837,25 +824,17 @@ def plot_learning_curve(
 
     plt.legend()
 
-
-    return _save_fig(
-        f"learning_curve_{_safe_name(model_name)}",
-        "evaluation"
-    )
-
-
 if __name__ == "__main__":
 
-    from src.preprocessing import (
-        load_raw_data,
-        clean_dataframe,
-    )
+    import pandas as pd
 
-    from src.feature_engineering import (
-        engineer_features,
-    )
+    from src.utils import DATA_DIR
+    from src.preprocessing import clean_dataframe
+    from src.feature_engineering import engineer_features
 
-    df = load_raw_data()
+    df = pd.read_csv(
+        DATA_DIR / "train.csv"
+    )
 
     df = clean_dataframe(df)
 
