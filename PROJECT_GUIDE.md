@@ -1,252 +1,462 @@
-# Used Car Price Prediction — Project Guide
+# House Price Prediction — Project Guide
 
-A concise reference for building this end-to-end ML regression project from scratch.
+A concise reference for building an end-to-end machine learning regression system for predicting house prices using the Ames Housing dataset.
 
 ---
 
-## 1. Setup
+## 1. Project Setup
 
-- Create project folder structure (`data/`, `src/`, `models/`, `outputs/`, `app/`, `notebooks/`, `tests/`)
-- Place dataset in `data/used_cars.csv`
-- Add `requirements.txt` and `.gitignore`
-- Create virtual environment and install dependencies
+Create the project structure:
+
+```
+data/
+src/
+models/
+outputs/
+app/
+notebooks/
+tests/
+```
+
+Place the dataset inside:
+
+```
+data/train.csv
+data/test.csv
+```
+
+Create a virtual environment and install dependencies.
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+python -m venv venv
+venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
 ---
 
-## 2. Understand the Data
+## 2. Understand the Dataset
 
-- Load CSV with Pandas
-- Inspect shape, columns, dtypes, missing values, duplicates
-- Run descriptive statistics
-- Save a markdown report to `outputs/reports/data_understanding.md`
+Load the training dataset and inspect:
 
-**Module:** `src/utils.py`
+* Dataset shape
+* Feature names
+* Data types
+* Missing values
+* Duplicate records
+* Descriptive statistics
 
----
+Generate a data understanding report.
 
-## 3. Clean the Data
+**Module**
 
-- Remove duplicates
-- Trim whitespace and normalize text
-- Parse target (`price`) and numeric fields (`mileage`, `model_year`)
-- Convert binary fields (`clean_title`, `accident`)
-- Detect and remove invalid values
-- Handle missing values (median for numeric, "unknown" for categorical)
-- Return a clean DataFrame
+```
+src/utils.py
+```
 
-**Module:** `src/preprocessing.py`
+Output:
 
----
-
-## 4. Engineer Features
-
-Create new columns without using the target:
-
-- `car_age` = current year − model year
-- `vehicle_age_category` (new / recent / mature / old)
-- `mileage_per_year`
-- `is_luxury_brand`
-- `is_premium_fuel`
-
-**Module:** `src/feature_engineering.py`
+```
+outputs/reports/data_understanding.md
+```
 
 ---
 
-## 5. Build Preprocessing Pipeline
+## 3. Data Cleaning
 
-- Split columns into numeric and categorical
-- Use `ColumnTransformer`:
-  - **Numeric:** `SimpleImputer` + `StandardScaler` (for linear/SVR models)
-  - **Categorical:** `SimpleImputer` + `OneHotEncoder(handle_unknown="ignore")`
-- Tree models skip scaling; linear/SVR models use scaling
+Clean the raw dataset by:
 
-**Module:** `src/preprocessing.py` → `build_preprocessor()`
+* Removing duplicates
+* Handling missing values
+* Correcting data types
+* Removing invalid records
+* Preparing features for modeling
 
----
+**Module**
 
-## 6. Exploratory Data Analysis
-
-Generate and save plots to `outputs/figures/`:
-
-- Price & mileage distributions
-- Correlation heatmap
-- Scatterplots, pairplot, boxplots
-- Brand & fuel type distributions
-- Average price by brand/year
-- Accident & clean title vs price
-- Top expensive brands
-
-Document findings in `notebooks/eda.ipynb`.
-
-**Module:** `src/visualization.py`
+```
+src/preprocessing.py
+```
 
 ---
 
-## 7. Train Models
+## 4. Feature Engineering
 
-Train all 7 regressors inside sklearn `Pipeline`:
+Create additional predictive features.
 
-| Model | Scaling |
-|-------|---------|
-| Linear Regression | Yes |
-| Ridge Regression | Yes |
-| Lasso Regression | Yes |
-| Decision Tree | No |
-| Random Forest | No |
-| Gradient Boosting | No |
-| Support Vector Regressor | Yes |
+Examples include:
 
-Split data 80/20, fit each pipeline, record training time.
+* TotalSF
+* HouseAge
+* TotalBathrooms
+* QualityLivingArea
+* TotalAreaScore
 
-**Module:** `src/train.py`
+Avoid using the target variable when creating features.
+
+**Module**
+
+```
+src/feature_engineering.py
+```
+
+---
+
+## 5. Exploratory Data Analysis (EDA)
+
+Generate visualizations for understanding the data.
+
+Visualizations include:
+
+* SalePrice distribution
+* Missing values
+* Correlation heatmap
+* GrLivArea vs SalePrice
+* Overall Quality vs SalePrice
+* Neighborhood vs SalePrice
+* Pairplot
+* Numerical features vs target
+* Categorical features vs target
+* Target outlier detection
+
+Notebook:
+
+```
+notebooks/eda.ipynb
+```
+
+Module:
+
+```
+src/visualization.py
+```
+
+Figures are saved in:
+
+```
+outputs/figures/eda/
+```
+
+---
+
+## 6. Build the Preprocessing Pipeline
+
+Construct a preprocessing pipeline using:
+
+* ColumnTransformer
+* SimpleImputer
+* StandardScaler (numerical features)
+* OneHotEncoder(handle_unknown="ignore") (categorical features)
+
+This preprocessing becomes part of every training pipeline.
+
+**Module**
+
+```
+src/preprocessing.py
+```
+
+---
+
+## 7. Train Regression Models
+
+Train multiple regression algorithms using Scikit-learn Pipelines.
+
+Models include:
+
+* Linear Regression
+* Ridge Regression
+* Lasso Regression
+* Decision Tree Regressor
+* Random Forest Regressor
+* Gradient Boosting Regressor
+* Support Vector Regressor
+
+Split the data into training and testing sets.
+
+Record:
+
+* Training time
+* Prediction time
+
+**Module**
+
+```
+src/train.py
+```
 
 ---
 
 ## 8. Evaluate Models
 
-For each model compute:
+Evaluate every trained model using:
 
-- MAE, MSE, RMSE, R²
-- Training time & prediction time
+* MAE
+* MSE
+* RMSE
+* R² Score
+* Training time
+* Prediction time
 
-Save results to `outputs/metrics/comparison.csv`.
+Generate:
 
-**Module:** `src/evaluate.py`
+* Model comparison table
+* Markdown summary
+* Cross-validation results
 
----
+**Module**
 
-## 9. Compare & Select Best Model
+```
+src/evaluate.py
+```
 
-- Rank models using composite score (RMSE + MAE + R² + training time)
-- Do **not** rely on R² alone
-- Generate comparison table, bar chart, and leaderboard
-- Save summary to `outputs/reports/model_comparison.md`
+Outputs:
 
-**Module:** `src/evaluate.py` → `select_best_model()`
-
----
-
-## 10. Save Model
-
-- Pick best model from comparison
-- Save as `models/best_model.pkl` with Joblib
-- Save feature metadata to `models/feature_info.json`
-
----
-
-## 11. Feature Importance
-
-- **Tree models** → feature importance plots
-- **Linear models** → coefficient plots
-- Save to `outputs/figures/evaluation/`
-
-**Module:** `src/visualization.py`
+```
+outputs/metrics/
+outputs/reports/
+```
 
 ---
 
-## 12. Bonus Analysis
+## 9. Select the Best Model
 
-- 5-fold cross-validation → `outputs/metrics/cross_validation.json`
-- Residual plots per model
-- Predicted vs actual plots
-- Learning curves
+Compare all models and select the best one based on:
 
----
+1. Lowest RMSE
+2. Highest R²
 
-## 13. Build Streamlit App
+Generate:
 
-Create multi-page app in `app/app.py`:
+* Comparison report
+* Metrics table
 
-| Page | Purpose |
-|------|---------|
-| Home | Project overview & key metrics |
-| Dataset Overview | Shape, sample data, statistics |
-| EDA | Display saved figures |
-| Model Comparison | Metrics table & charts |
-| Predict Price | Input form → predicted price |
-| About | Project info |
+Save:
 
-Load saved model and feature info at runtime.
+```
+outputs/reports/model_comparison.md
+```
 
 ---
 
-## 14. Write README
+## 10. Save the Best Model
+
+Save the trained model for deployment.
+
+Artifacts:
+
+```
+models/best_model.pkl
+models/feature_info.json
+models/model_metadata.json
+```
+
+---
+
+## 11. Model Analysis
+
+Analyze the trained model.
+
+Generate:
+
+* Feature importance
+* Feature importance CSV
+
+Module:
+
+```
+src/feature_importance.py
+```
+
+Outputs:
+
+```
+outputs/feature_importance.csv
+outputs/figures/model_analysis/
+```
+
+---
+
+## 12. Regression Evaluation Visualizations
+
+Generate evaluation plots for the best model.
+
+Visualizations include:
+
+* Actual vs Predicted
+* Residual Plot
+
+Module:
+
+```
+src/evaluate.py
+```
+
+Outputs:
+
+```
+outputs/figures/evaluation/
+```
+
+---
+
+## 13. Prediction Pipeline
+
+Load the saved model and preprocess new input automatically.
+
+The prediction module:
+
+* Loads the trained model
+* Applies feature engineering
+* Matches training features
+* Produces the predicted house price
+
+**Module**
+
+```
+src/predict.py
+```
+
+---
+
+## 14. Testing
+
+Verify that preprocessing and feature engineering work correctly.
+
+Run:
+
+```bash
+pytest tests -v
+```
+
+or
+
+```bash
+python -m pytest tests -v
+```
+
+---
+
+## 15. Deployment
+
+Develop a web application that allows users to:
+
+* Enter house characteristics
+* Load the trained model
+* Predict house prices
+* Display the prediction interactively
+
+Application:
+
+```
+app/app.py
+```
+
+---
+
+## 16. Documentation
+
+Maintain:
+
+* README.md
+* PROJECT_GUIDE.md
 
 Include:
 
-- Problem statement
-- Dataset description
-- Installation steps
-- Usage commands
-- Project structure
-- Model comparison results
-- Screenshot references
+* Installation
+* Usage
+* Project structure
+* Dataset description
+* Model results
 
 ---
 
-## 15. Test & Validate
-
-Run checks before considering the project done:
-
-```bash
-PYTHONPATH=. python -m src.train      # Full pipeline
-PYTHONPATH=. pytest tests/ -v          # Unit tests
-streamlit run app/app.py               # App launch
-```
-
-Verify:
-
-- [ ] Preprocessing works
-- [ ] All models train successfully
-- [ ] Metrics and figures are generated
-- [ ] Best model saves and loads correctly
-- [ ] Predictions return valid prices
-- [ ] Streamlit app runs without errors
-
----
-
-## Quick Command Reference
-
-| Task | Command |
-|------|---------|
-| Train all models | `PYTHONPATH=. python -m src.train` |
-| Run tests | `PYTHONPATH=. pytest tests/ -v` |
-| Launch app | `streamlit run app/app.py` |
-| Open EDA notebook | `jupyter notebook notebooks/eda.ipynb` |
-
----
-
-## Suggested Workflow Order
+## Project Workflow
 
 ```
-Setup → Data Understanding → Cleaning → Feature Engineering
-    → EDA → Preprocessing Pipeline → Train Models → Evaluate
-    → Compare & Select → Save Model → Feature Importance
-    → Bonus Plots → Streamlit App → README → Final Validation
+Project Setup
+        │
+        ▼
+Dataset Understanding
+        │
+        ▼
+Data Cleaning
+        │
+        ▼
+Feature Engineering
+        │
+        ▼
+Exploratory Data Analysis
+        │
+        ▼
+Preprocessing Pipeline
+        │
+        ▼
+Train Models
+        │
+        ▼
+Evaluate Models
+        │
+        ▼
+Select Best Model
+        │
+        ▼
+Model Analysis
+        │
+        ▼
+Save Model
+        │
+        ▼
+Prediction Pipeline
+        │
+        ▼
+Testing
+        │
+        ▼
+Deployment
 ```
 
 ---
 
-## Key Files Map
+## Project Structure
 
-| File | Role |
-|------|------|
-| `src/utils.py` | Paths, data loading, inspection reports |
-| `src/preprocessing.py` | Cleaning, encoding, scaling |
-| `src/feature_engineering.py` | Derived features |
-| `src/train.py` | End-to-end training orchestrator |
-| `src/evaluate.py` | Metrics, CV, model selection |
-| `src/predict.py` | Load model & predict |
-| `src/visualization.py` | All plots |
-| `app/app.py` | Streamlit UI |
-| `notebooks/eda.ipynb` | Interactive EDA |
+```
+house-price-prediction/
+│
+├── app/
+├── data/
+├── models/
+├── notebooks/
+├── outputs/
+│   ├── figures/
+│   │   ├── eda/
+│   │   ├── evaluation/
+│   │   └── model_analysis/
+│   ├── metrics/
+│   └── reports/
+├── src/
+├── tests/
+├── README.md
+├── PROJECT_GUIDE.md
+└── requirements.txt
+```
 
 ---
 
-*Follow these steps in order. Each major step should be verified before moving to the next.*
+## Main Modules
+
+| Module                   | Responsibility                    |
+| ------------------------ | --------------------------------- |
+| `utils.py`               | Project utilities, paths, reports |
+| `preprocessing.py`       | Data cleaning and preprocessing   |
+| `feature_engineering.py` | Feature creation                  |
+| `visualization.py`       | EDA and evaluation visualizations |
+| `train.py`               | Model training                    |
+| `evaluate.py`            | Metrics and model evaluation      |
+| `feature_importance.py`  | Feature importance analysis       |
+| `predict.py`             | Prediction utilities              |
+| `app.py`                 | Deployment application            |
+
+---
+
+Follow the workflow sequentially. Verify each stage before moving to the next one.
