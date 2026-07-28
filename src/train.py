@@ -1,282 +1,724 @@
-"""Model training pipeline for used car price prediction."""
+"""
+Training pipeline for House Price Regression Project.
+"""
 
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from typing import Any
 
 import joblib
-import numpy as np
 import pandas as pd
-from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
-from sklearn.linear_model import Lasso, LinearRegression, Ridge
-from sklearn.model_selection import train_test_split
+
+from sklearn.model_selection import train_test_split, GridSearchCV
+
 from sklearn.pipeline import Pipeline
-from sklearn.svm import SVR
+
+from sklearn.linear_model import (
+    LinearRegression,
+    Ridge,
+    Lasso,
+)
+
 from sklearn.tree import DecisionTreeRegressor
+
+from sklearn.ensemble import (
+    RandomForestRegressor,
+    GradientBoostingRegressor,
+)
+
+from sklearn.svm import SVR
+
+
+from src.utils import (
+    load_raw_data,
+    TARGET_COLUMN,
+    MODELS_DIR,
+    REPORTS_DIR,
+    ensure_output_dirs,
+)
+
+
+from src.preprocessing import (
+    clean_dataframe,
+    get_feature_columns,
+    build_preprocessor,
+)
+
+
+from src.feature_engineering import (
+    engineer_features,
+)
+
 
 from src.evaluate import (
     evaluate_model,
-    generate_comparison_report,
-    run_cross_validation,
     save_comparison_results,
     select_best_model,
-    compute_learning_curve_data,
-)
-from src.feature_engineering import engineer_features
-from src.preprocessing import build_preprocessor, clean_dataframe, get_feature_columns
-from src.utils import (
-    MODELS_DIR,
-    METRICS_DIR,
-    REPORTS_DIR,
-    TARGET_COLUMN,
-    ensure_output_dirs,
-    generate_data_understanding_report,
-    load_raw_data,
-    save_json,
-)
-from src.visualization import (
-    generate_all_eda_figures,
-    plot_coefficients,
-    plot_feature_importance,
-    plot_leaderboard,
-    plot_learning_curve,
-    plot_model_comparison,
-    plot_prediction_vs_actual,
-    plot_residuals,
+    generate_comparison_report,
 )
 
 
-# Models that benefit from feature scaling
-SCALED_MODELS = {"Linear Regression", "Ridge Regression", "Lasso Regression", "Support Vector Regressor"}
 
-TREE_MODELS = {"Decision Tree Regressor", "Random Forest Regressor", "Gradient Boosting Regressor"}
-LINEAR_MODELS = {"Linear Regression", "Ridge Regression", "Lasso Regression"}
+# ============================================================
+# DATA PREPARATION
+# ============================================================
 
 
-def get_model_registry() -> dict[str, Any]:
-    """Return all regression algorithms to train."""
+def prepare_data():
+
+    print("=" * 60)
+    print("LOADING DATA")
+    print("=" * 60)
+
+
+    df = load_raw_data()
+
+
+    print(
+        "Original shape:",
+        df.shape
+    )
+
+
+    df = clean_dataframe(df)
+
+
+    df = engineer_features(df)
+
+
+    print(
+        "After preprocessing:",
+        df.shape
+    )
+
+
+    REPORTS_DIR.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+
+    df.to_csv(
+        REPORTS_DIR / "cleaned_data.csv",
+        index=False
+    )
+
+
+    X = df.drop(
+        columns=[TARGET_COLUMN]
+    )
+
+    y = df[TARGET_COLUMN]
+
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        random_state=42
+    )
+
+
+    numerical_features, categorical_features = (
+        get_feature_columns(df)
+    )
+
+
+    return (
+        X_train,
+        X_test,
+        y_train,
+        y_test,
+        numerical_features,
+        categorical_features,
+    )
+
+
+
+# ============================================================
+# MODEL CREATION
+# ============================================================
+
+
+def create_models():
+
     return {
-        "Linear Regression": LinearRegression(),
-        "Ridge Regression": Ridge(alpha=1.0, random_state=42),
-        "Lasso Regression": Lasso(alpha=1.0, random_state=42, max_iter=5000),
-        "Decision Tree Regressor": DecisionTreeRegressor(random_state=42, max_depth=12),
-        "Random Forest Regressor": RandomForestRegressor(
-            n_estimators=100, random_state=42, n_jobs=-1, max_depth=15
-        ),
-        "Gradient Boosting Regressor": GradientBoostingRegressor(
-            n_estimators=100, random_state=42, max_depth=5, learning_rate=0.1
-        ),
-        "Support Vector Regressor": SVR(kernel="rbf", C=100, gamma="scale"),
+
+        "Linear Regression":
+            LinearRegression(),
+
+
+        "Ridge Regression":
+            Ridge(
+                alpha=1.0
+            ),
+
+
+        "Lasso Regression":
+            Lasso(
+                alpha=0.001,
+                max_iter=20000
+            ),
+
+
+        "Decision Tree":
+            DecisionTreeRegressor(
+                random_state=42
+            ),
+
+
+        "Random Forest":
+            RandomForestRegressor(
+                n_estimators=200,
+                random_state=42,
+                n_jobs=-1
+            ),
+
+
+        "Gradient Boosting":
+            GradientBoostingRegressor(
+                random_state=42
+            ),
+
+
+        "SVR":
+            SVR(
+                kernel="rbf"
+            )
     }
+
+
+
+# ============================================================
+# PIPELINE BUILDER
+# ============================================================
 
 
 def build_pipeline(
-    model: Any,
-    numeric_features: list[str],
-    categorical_features: list[str],
-    model_name: str,
-) -> Pipeline:
-    """Build full sklearn Pipeline with preprocessing and regressor."""
-    scale_numeric = model_name in SCALED_MODELS
-    preprocessor = build_preprocessor(numeric_features, categorical_features, scale_numeric)
+    model,
+    numerical_features,
+    categorical_features
+):
+
+    preprocessor = build_preprocessor(
+        numerical_features,
+        categorical_features,
+        scale_numeric=True
+    )
+
+
     return Pipeline(
         steps=[
-            ("preprocessor", preprocessor),
-            ("regressor", model),
+
+            (
+                "preprocessor",
+                preprocessor
+            ),
+
+            (
+                "regressor",
+                model
+            )
+
         ]
     )
 
+# tun the best models
 
-def get_feature_names_from_pipeline(pipeline: Pipeline) -> list[str]:
-    """Extract transformed feature names from a fitted pipeline."""
-    preprocessor = pipeline.named_steps["preprocessor"]
-    feature_names: list[str] = []
+def tune_model(
+    pipeline,
+    X_train,
+    y_train,
+    model_name
+):
 
-    for name, transformer, columns in preprocessor.transformers_:
-        if name == "num":
-            feature_names.extend(columns)
-        elif name == "cat":
-            encoder = transformer.named_steps["encoder"]
-            cat_names = encoder.get_feature_names_out(columns).tolist()
-            feature_names.extend(cat_names)
-
-    return feature_names
-
-
-def prepare_data() -> tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
-    """
-    Load, clean, engineer features, and split into train/test.
-
-    Returns X_train, y_train, full cleaned dataframe for EDA.
-    """
-    raw_df = load_raw_data()
-    generate_data_understanding_report(raw_df)
-
-    cleaned = clean_dataframe(raw_df)
-    engineered = engineer_features(cleaned)
-
-    feature_cols = [c for c in engineered.columns if c != TARGET_COLUMN]
-    X = engineered[feature_cols]
-    y = engineered[TARGET_COLUMN]
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
+    print(
+        f"\nStarting {model_name} tuning..."
     )
 
-    return (X_train, X_test, y_train, y_test), engineered
+
+    if model_name == "Random Forest":
+
+        params = {
+
+            "regressor__n_estimators":
+                [100, 200],
+
+            "regressor__max_depth":
+                [10, 20, None],
+
+            "regressor__min_samples_split":
+                [2, 5]
+
+        }
 
 
-def train_all_models(
-    X_train: pd.DataFrame,
-    X_test: pd.DataFrame,
-    y_train: pd.Series,
-    y_test: pd.Series,
-) -> tuple[pd.DataFrame, dict[str, Any], dict[str, Any]]:
-    """
-    Train all regression models and evaluate each.
+    elif model_name == "Gradient Boosting":
 
-    Returns metrics dataframe, fitted models dict, and predictions dict.
-    """
-    numeric_features, categorical_features = get_feature_columns(X_train)
-    registry = get_model_registry()
+        params = {
 
-    all_metrics: list[dict[str, float]] = []
-    fitted_models: dict[str, Pipeline] = {}
-    predictions: dict[str, np.ndarray] = {}
-    cv_results: dict[str, dict] = {}
-    learning_curves: dict[str, dict] = {}
+        "regressor__n_estimators":
+            [100, 200, 300],
+
+        "regressor__learning_rate":
+            [0.01, 0.05, 0.1],
+
+        "regressor__max_depth":
+            [2, 3, 5]
+
+  
+    }
+
+
+    else:
+
+        raise ValueError(
+            "Unsupported model for tuning"
+        )
+
+
+    grid = GridSearchCV(
+
+        pipeline,
+
+        param_grid=params,
+
+        cv=5,
+
+        scoring="r2",
+
+        n_jobs=-1
+
+    )
+
+
+    grid.fit(
+        X_train,
+        y_train
+    )
+
+
+    print(
+        "Best parameters:",
+        grid.best_params_
+    )
+
+
+    return grid.best_estimator_
+
+
+
+# ============================================================
+# TRAINING
+# ============================================================
+
+
+def train():
 
     ensure_output_dirs()
 
-    for model_name, estimator in registry.items():
-        print(f"Training {model_name}...")
-        pipeline = build_pipeline(estimator, numeric_features, categorical_features, model_name)
-        metrics, fitted, y_pred = evaluate_model(
-            pipeline, X_train, X_test, y_train, y_test, model_name
-        )
-        all_metrics.append(metrics)
-        fitted_models[model_name] = fitted
-        predictions[model_name] = y_pred
 
-        # Cross-validation
-        cv_results[model_name] = run_cross_validation(
-            build_pipeline(
-                clone_estimator(estimator),
-                numeric_features,
-                categorical_features,
-                model_name,
-            ),
+    (
+        X_train,
+        X_test,
+        y_train,
+        y_test,
+        numerical_features,
+        categorical_features
+
+    ) = prepare_data()
+
+
+
+    models = create_models()
+
+
+    results = []
+
+    trained_models = {}
+
+
+
+    # -------------------------------
+    # Train all baseline models
+    # -------------------------------
+
+    for name, model in models.items():
+
+        print(
+            "\nTraining:",
+            name
+        )
+
+
+        pipeline = build_pipeline(
+
+            model,
+
+            numerical_features,
+
+            categorical_features
+
+        )
+
+
+        metrics, fitted, predictions = evaluate_model(
+
+            pipeline,
+
             X_train,
+
+            X_test,
+
             y_train,
+
+            y_test,
+
+            name
+
         )
 
-        # Learning curves for best candidates (all models for completeness)
-        lc_pipeline = build_pipeline(
-            clone_estimator(estimator),
-            numeric_features,
-            categorical_features,
-            model_name,
-        )
-        learning_curves[model_name] = compute_learning_curve_data(lc_pipeline, X_train, y_train)
 
-        # Bonus plots
-        plot_residuals(y_test.values, y_pred, model_name)
-        plot_prediction_vs_actual(y_test.values, y_pred, model_name)
-        plot_learning_curve(learning_curves[model_name], model_name)
-
-        # Feature importance / coefficients
-        feature_names = get_feature_names_from_pipeline(fitted)
-        if model_name in TREE_MODELS:
-            plot_feature_importance(fitted, feature_names, model_name)
-        elif model_name in LINEAR_MODELS:
-            plot_coefficients(fitted, feature_names, model_name)
-
-    metrics_df = pd.DataFrame(all_metrics)
-    save_comparison_results(metrics_df)
-    save_json(cv_results, METRICS_DIR / "cross_validation.json")
-
-    return metrics_df, fitted_models, predictions
+        results.append(metrics)
 
 
-def clone_estimator(estimator: Any) -> Any:
-    """Clone sklearn estimator with same parameters."""
-    from sklearn.base import clone
-    return clone(estimator)
+        trained_models[name] = fitted
 
 
-def save_best_model(fitted_models: dict[str, Pipeline], best_model_name: str) -> Path:
-    """Save the best model and metadata to models/."""
-    ensure_output_dirs()
-    model = fitted_models[best_model_name]
-    model_path = MODELS_DIR / "best_model.pkl"
 
-    metadata = {
-        "model_name": best_model_name,
-        "target_column": TARGET_COLUMN,
-    }
+    # ==========================================================
+    # BASELINE RESULTS
+    # ==========================================================
 
-    joblib.dump({"model": model, "metadata": metadata}, model_path)
-    save_json(metadata, MODELS_DIR / "model_metadata.json")
-    print(f"Best model ({best_model_name}) saved to {model_path}")
-    return model_path
+    results_df = pd.DataFrame(results)
+
+    save_comparison_results(results_df)
+
+    final_model_name = select_best_model(results_df)
+
+    print(
+        "\nBest baseline model:",
+        final_model_name
+    )
 
 
-def run_training_pipeline() -> dict[str, Any]:
-    """
-    Execute the full training pipeline end-to-end.
+    # ==========================================================
+    # HYPERPARAMETER TUNING
+    # ==========================================================
 
-    Returns summary dict with paths and best model info.
-    """
-    (X_train, X_test, y_train, y_test), engineered_df = prepare_data()
+    # Tune Gradient Boosting
+    gb_pipeline = build_pipeline(
+        GradientBoostingRegressor(random_state=42),
+        numerical_features,
+        categorical_features
+    )
 
-    print("Generating EDA figures...")
-    eda_paths = generate_all_eda_figures(engineered_df)
-    print(f"Generated {len(eda_paths)} EDA figures.")
+    tuned_gb = tune_model(
+        gb_pipeline,
+        X_train,
+        y_train,
+        "Gradient Boosting"
+    )
 
-    metrics_df, fitted_models, _ = train_all_models(X_train, X_test, y_train, y_test)
 
-    best_model_name = select_best_model(metrics_df)
-    generate_comparison_report(metrics_df, best_model_name)
+    # Tune Random Forest
+    rf_pipeline = build_pipeline(
+        RandomForestRegressor(random_state=42),
+        numerical_features,
+        categorical_features
+    )
 
-    plot_model_comparison(metrics_df)
-    plot_leaderboard(metrics_df)
+    tuned_rf = tune_model(
+        rf_pipeline,
+        X_train,
+        y_train,
+        "Random Forest"
+    )
 
-    model_path = save_best_model(fitted_models, best_model_name)
 
-    # Save feature column info for Streamlit
-    numeric_features, categorical_features = get_feature_columns(X_train)
+    # ==========================================================
+    # EVALUATE TUNED MODELS
+    # ==========================================================
+
+    tuned_gb_metrics, _, _ = evaluate_model(
+        tuned_gb,
+        X_train,
+        X_test,
+        y_train,
+        y_test,
+        "Tuned Gradient Boosting"
+    )
+
+    tuned_rf_metrics, _, _ = evaluate_model(
+        tuned_rf,
+        X_train,
+        X_test,
+        y_train,
+        y_test,
+        "Tuned Random Forest"
+    )
+
+
+    # ==========================================================
+    # ADD TUNED RESULTS
+    # ==========================================================
+
+    results_df = pd.concat(
+        [
+            results_df,
+            pd.DataFrame(
+                [
+                    tuned_gb_metrics,
+                    tuned_rf_metrics
+                ]
+            )
+        ],
+        ignore_index=True
+    )
+
+    save_comparison_results(results_df)
+
+
+    # ==========================================================
+    # SELECT FINAL MODEL
+    # ==========================================================
+
+    trained_models["Tuned Gradient Boosting"] = tuned_gb
+    trained_models["Tuned Random Forest"] = tuned_rf
+
+    final_model_name = select_best_model(results_df)
+
+    final_model = trained_models[final_model_name]
+
+    print(
+        "\nFinal selected model:",
+        final_model_name
+    )
+
+
+
+    joblib.dump(
+        {
+            "model": final_model,
+            "metadata": {
+                "target": TARGET_COLUMN,
+                "model_name": final_model_name,
+            },
+        },
+        MODELS_DIR / "best_model.pkl",
+    )
+
+
+    # ==================================================
+    # SAVE FEATURE INFORMATION
+    # ==================================================
+
+
     feature_info = {
-        "numeric_features": numeric_features,
-        "categorical_features": categorical_features,
-        "all_features": numeric_features + categorical_features,
-        "best_model": best_model_name,
+
+        "numerical_features":
+            numerical_features,
+
+
+        "categorical_features":
+            categorical_features,
+
+
+        "all_features":
+            X_train.columns.tolist()
+
     }
-    save_json(feature_info, MODELS_DIR / "feature_info.json")
 
-    # Save cleaned data for Streamlit EDA page
-    engineered_df.to_csv(REPORTS_DIR / "cleaned_data.csv", index=False)
 
-    summary = {
-        "best_model": best_model_name,
-        "model_path": str(model_path),
-        "metrics_path": str(METRICS_DIR / "comparison.csv"),
-        "eda_figures": len(eda_paths),
+    with open(
+
+        MODELS_DIR /
+        "feature_info.json",
+
+        "w"
+
+    ) as f:
+
+        json.dump(
+
+            feature_info,
+
+            f,
+
+            indent=4
+
+        )
+
+
+
+    generate_comparison_report(
+
+        results_df,
+
+        final_model_name
+
+    )
+
+
+    print(
+        "\nTraining completed successfully."
+    )
+
+    # ============================================================
+    # SAVE MODEL METADATA
+    # ============================================================
+
+    model_metadata = {
+
+        "model_name": final_model_name,
+
+        "target_column": TARGET_COLUMN
+
+    }
+
+
+    with open(
+
+        MODELS_DIR /
+        "model_metadata.json",
+
+        "w"
+
+    ) as f:
+
+        json.dump(
+
+            model_metadata,
+
+            f,
+
+            indent=4
+
+        )
+    # ============================================================
+    # SAVE TRAINING SUMMARY
+    # ============================================================
+
+
+    training_summary = {
+
+        "final_model": final_model_name,
+
+        "model_path": str(
+            MODELS_DIR / "best_model.pkl"
+        ),
+
+        "metrics_path": str(
+            REPORTS_DIR / "comparison.csv"
+        ),
+
         "n_train": len(X_train),
+
         "n_test": len(X_test),
-        "metrics": metrics_df.to_dict(orient="records"),
+
+        "metrics": results_df.to_dict(
+            orient="records"
+        )
+
     }
-    save_json(summary, REPORTS_DIR / "training_summary.json")
-
-    print("\n" + "=" * 60)
-    print("TRAINING COMPLETE")
-    print("=" * 60)
-    print(f"Best Model: {best_model_name}")
-    print(metrics_df.sort_values("rmse").to_string(index=False))
-
-    return summary
 
 
+
+    with open(
+
+        REPORTS_DIR /
+        "training_summary.json",
+
+        "w"
+
+    ) as f:
+
+        json.dump(
+
+            training_summary,
+
+            f,
+
+            indent=4
+
+        )
+# ============================================================
+# FEATURE IMPORTANCE EXTRACTION
+# ============================================================
+
+def save_feature_importance(
+    model_pipeline,
+    output_path
+):
+
+    try:
+
+        # Get preprocessing and model steps
+        preprocessor = model_pipeline.named_steps["preprocessor"]
+        model = model_pipeline.named_steps["regressor"]
+
+
+        # Only tree-based models have feature_importances_
+        if not hasattr(model, "feature_importances_"):
+
+            print(
+                "Model does not support feature importance."
+            )
+
+            return
+
+
+        # Get transformed feature names
+        feature_names = (
+            preprocessor
+            .get_feature_names_out()
+        )
+
+
+        importances = model.feature_importances_
+
+
+        importance_df = pd.DataFrame(
+
+            {
+                "feature": feature_names,
+                "importance": importances
+            }
+
+        )
+
+
+        importance_df = (
+            importance_df
+            .sort_values(
+                by="importance",
+                ascending=False
+            )
+            .reset_index(drop=True)
+        )
+
+
+        importance_df.to_csv(
+
+            output_path,
+
+            index=False
+
+        )
+
+
+        print(
+            "Feature importance saved:",
+            output_path
+        )
+
+
+    except Exception as e:
+
+        print(
+            "Could not extract feature importance:",
+            e
+        )
 if __name__ == "__main__":
-    run_training_pipeline()
+
+    train()
