@@ -503,33 +503,6 @@ def render_home():
 
 
 
-    # ========================================================
-    # FEATURE IMPORTANCE IMAGE
-    # ========================================================
-
-    feature_paths = [
-        FIGURES_DIR / "evaluation" / "feature_importance.png",
-        FIGURES_DIR / "model_analysis" / "feature_importance.png",
-        FIGURES_DIR / "feature_importance.png"
-    ]
-
-
-    for image_path in feature_paths:
-
-        if image_path.exists():
-
-            st.subheader(
-                "🌳 Important Features"
-            )
-
-
-            st.image(
-                str(image_path),
-                use_container_width=True
-            )
-
-            break
-
 # ============================================================
 # DATASET EXPLORER PAGE
 # ============================================================
