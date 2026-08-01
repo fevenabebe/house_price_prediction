@@ -1,23 +1,28 @@
 # House Price Prediction
 
-An end-to-end machine learning regression project that predicts residential property prices using the Ames Housing dataset. The project covers the complete machine learning workflow, including data preprocessing, feature engineering, exploratory data analysis (EDA), model training, evaluation, feature importance analysis, and deployment with a Streamlit application.
+An end-to-end machine learning regression project that predicts residential property prices using the **Ames Housing Dataset**.
+
+The project implements a complete machine learning workflow including data preprocessing, feature engineering, exploratory data analysis (EDA), model training, evaluation, explainability analysis, and deployment through an interactive Streamlit web application.
+
+🚀 **Live Demo:**
+https://housepriceprediction-qiyas.streamlit.app/
 
 ---
 
 # Problem Statement
 
-Accurately estimating the selling price of a house is a challenging regression problem because house prices depend on many interacting factors such as location, size, quality, age, and amenities.
+Accurately estimating residential property prices is a challenging regression problem because housing prices depend on multiple interacting factors such as location, quality, size, age, and amenities.
 
-This project builds a complete machine learning pipeline that:
+This project develops a complete machine learning pipeline that:
 
-* Cleans and preprocesses the raw housing data
-* Engineers additional predictive features
-* Performs exploratory data analysis
+* Cleans and preprocesses housing data
+* Performs feature engineering to create more informative predictors
+* Conducts exploratory data analysis
 * Trains and compares multiple regression models
-* Selects the best-performing model
+* Selects the best-performing regression model
 * Generates evaluation reports and visualizations
-* Predicts house prices using a trained model
-* Deploys the model through an interactive Streamlit application
+* Performs model interpretation using feature importance and SHAP
+* Deploys the trained model through a Streamlit application
 
 **Target Variable**
 
@@ -29,17 +34,17 @@ SalePrice
 
 # Dataset
 
-This project uses the **Ames Housing Dataset**, which contains detailed information about residential homes.
+This project uses the **Ames Housing Dataset**, which contains detailed information about residential properties.
 
 ### Dataset Summary
 
-| Item             | Value                |
-| ---------------- | -------------------- |
-| Training Records | 1,460                |
-| Features         | 79 original features |
-| Target           | SalePrice            |
+| Item              | Value     |
+| ----------------- | --------- |
+| Training Records  | 1,460     |
+| Original Features | 79        |
+| Target            | SalePrice |
 
-Examples of important features include:
+Important features include:
 
 * OverallQual
 * GrLivArea
@@ -72,7 +77,7 @@ Feature Engineering
 Exploratory Data Analysis
     │
     ▼
-Preprocessing Pipeline
+Feature Preprocessing
     │
     ▼
 Model Training
@@ -87,7 +92,10 @@ Best Model Selection
 Feature Importance Analysis
     │
     ▼
-Prediction
+SHAP Explainability
+    │
+    ▼
+Prediction System
     │
     ▼
 Streamlit Deployment
@@ -97,26 +105,29 @@ Streamlit Deployment
 
 # Installation
 
-## Clone the Repository
+## Clone Repository
 
 ```bash
 git clone <repository-url>
+
 cd house-price-prediction
 ```
 
-## Create a Virtual Environment
+## Create Virtual Environment
 
 ```bash
 python -m venv venv
 ```
 
-Windows
+Activate environment:
+
+### Windows
 
 ```bash
 venv\Scripts\activate
 ```
 
-Linux / macOS
+### Linux/macOS
 
 ```bash
 source venv/bin/activate
@@ -132,9 +143,9 @@ pip install -r requirements.txt
 
 # Usage
 
-## Train All Models
+## Train Models
 
-Run the complete training pipeline.
+Run the training pipeline:
 
 ```bash
 python -m src.train
@@ -142,7 +153,7 @@ python -m src.train
 
 ---
 
-## Evaluate the Saved Model
+## Evaluate Model
 
 ```bash
 python -m src.evaluate
@@ -150,7 +161,7 @@ python -m src.evaluate
 
 ---
 
-## Extract Feature Importance
+## Generate Feature Importance
 
 ```bash
 python -m src.feature_importance
@@ -158,26 +169,37 @@ python -m src.feature_importance
 
 ---
 
-## Make a Prediction
+## Generate SHAP Explainability
+
+```bash
+python -m src.explainability
+```
+
+---
+
+## Generate EDA Visualizations
+
+```bash
+python -m src.eda_visualization
+```
+
+---
+
+## Make Prediction
 
 Example:
 
 ```python
 from src.predict import predict_price
 
-sample_house = {
-    # Example input features
-    # Replace with actual feature values
-}
+prediction = predict_price(sample_house)
 
-predicted_price = predict_price(sample_house)
-
-print(f"Predicted House Price: ${predicted_price:,.2f}")
+print(prediction)
 ```
 
 ---
 
-## Launch the Streamlit Application
+## Launch Streamlit Application
 
 ```bash
 streamlit run app/app.py
@@ -185,19 +207,50 @@ streamlit run app/app.py
 
 ---
 
-## Run Unit Tests
+# Streamlit Web Application
 
-```bash
-pytest tests -v
-```
+The deployed application provides:
 
----
+### 🏠 Home Page
 
-## Open the EDA Notebook
+Project overview and model summary.
 
-```bash
-jupyter notebook notebooks/eda.ipynb
-```
+### 📊 Dataset Explorer
+
+Dataset information and statistics.
+
+### 🔍 Exploratory Data Analysis
+
+Interactive visualization of:
+
+* SalePrice distribution
+* Log-transformed SalePrice distribution
+* Missing values
+* Correlation analysis
+* Numerical feature relationships
+* Categorical feature relationships
+
+### 🤖 Model Evaluation
+
+Displays:
+
+* Model comparison
+* Evaluation metrics
+* Actual vs predicted visualization
+* Residual analysis
+
+### 🌳 Feature Analysis
+
+Includes:
+
+* Feature importance analysis
+* SHAP feature importance
+* SHAP summary plots
+* SHAP waterfall explanation
+
+### 🏡 House Price Prediction
+
+Allows users to enter house information and receive predicted prices.
 
 ---
 
@@ -211,8 +264,7 @@ house-price-prediction/
 │
 ├── data/
 │   ├── train.csv
-│   ├── test.csv
-│   └── sample_submission.csv
+│   └── test.csv
 │
 ├── models/
 │   ├── best_model.pkl
@@ -222,32 +274,29 @@ house-price-prediction/
 ├── notebooks/
 │   ├── eda.ipynb
 │   ├── house_eda.ipynb
-│   ├── house_modeling.ipynb
-│   └── initial_eda.ipynb
+│   └── house_modeling.ipynb
 │
 ├── outputs/
 │   ├── figures/
 │   │   ├── eda/
 │   │   ├── evaluation/
 │   │   └── model_analysis/
+│   │
 │   ├── metrics/
 │   └── reports/
 │
 ├── src/
 │   ├── preprocessing.py
 │   ├── feature_engineering.py
-│   ├── visualization.py
+│   ├── eda_visualization.py
 │   ├── train.py
 │   ├── evaluate.py
 │   ├── predict.py
 │   ├── feature_importance.py
+│   ├── explainability.py
 │   └── utils.py
 │
-├── tests/
-│   └── test_preprocessing.py
-│
 ├── requirements.txt
-├── PROJECT_GUIDE.md
 └── README.md
 ```
 
@@ -255,7 +304,7 @@ house-price-prediction/
 
 # Models Trained
 
-The project compares several regression algorithms.
+Several regression algorithms were evaluated:
 
 * Linear Regression
 * Ridge Regression
@@ -263,21 +312,47 @@ The project compares several regression algorithms.
 * Decision Tree Regressor
 * Random Forest Regressor
 * Gradient Boosting Regressor
-* Support Vector Regressor
+* CatBoost Regressor
 
-Each model is evaluated using:
+Models were evaluated using:
 
 * Mean Absolute Error (MAE)
 * Mean Squared Error (MSE)
 * Root Mean Squared Error (RMSE)
 * R² Score
-* Training Time
-* Prediction Time
 
-The best model is automatically selected based on:
+The final model was selected based on:
 
 1. Lowest RMSE
 2. Highest R² Score
+
+---
+
+# Model Explainability
+
+To understand how the model makes predictions, this project uses:
+
+## Feature Importance
+
+Identifies the most influential features used by the trained model.
+
+Examples:
+
+* QualityLivingArea
+* TotalSF
+* OverallQual
+* TotalBathrooms
+* HouseAge
+
+## SHAP Analysis
+
+SHAP provides deeper interpretation through:
+
+* SHAP Bar Plot
+* SHAP Summary Plot
+* SHAP Waterfall Explanation
+
+These visualizations show both global feature importance and individual prediction explanations.
 
 ---
 
@@ -285,20 +360,21 @@ The best model is automatically selected based on:
 
 ## Reports
 
+Location:
+
 ```text
 outputs/reports/
 ```
 
 Contains:
 
-* Data understanding report
-* Model comparison report
 * Training summary
-* Final evaluation metrics
-
----
+* Model comparison
+* Final evaluation results
 
 ## Metrics
+
+Location:
 
 ```text
 outputs/metrics/
@@ -306,46 +382,44 @@ outputs/metrics/
 
 Contains:
 
-* Model comparison CSV
-* Cross-validation results
-
----
+* Model comparison metrics
+* Feature importance values
+* SHAP values
 
 ## EDA Figures
+
+Location:
 
 ```text
 outputs/figures/eda/
 ```
 
-Generated visualizations include:
+Generated plots:
 
 * SalePrice Distribution
-* Missing Values
+* Log SalePrice Distribution
+* Missing Values Analysis
 * Correlation Heatmap
-* GrLivArea vs SalePrice
-* Overall Quality vs SalePrice
-* Neighborhood vs SalePrice
-* Pairplot
-* Numerical Features vs Target
-* Categorical Features vs Target
-* Target Outlier Detection
-
----
+* Numerical Features vs SalePrice
+* Categorical Features vs SalePrice
 
 ## Evaluation Figures
+
+Location:
 
 ```text
 outputs/figures/evaluation/
 ```
 
-Generated visualizations include:
+Contains:
 
-* Actual vs Predicted
+* Actual vs Predicted Plot
 * Residual Plot
-
----
+* Learning Curve
 
 ## Model Analysis
+
+Location:
 
 ```text
 outputs/figures/model_analysis/
@@ -354,13 +428,17 @@ outputs/figures/model_analysis/
 Contains:
 
 * Feature Importance Plot
+* SHAP Bar Plot
+* SHAP Summary Plot
+* SHAP Waterfall Plot
 
 ---
 
 # Example Prediction
 
 ```text
-Predicted House Price: $184,289.84
+Predicted House Price:
+$184,289.84
 ```
 
 ---
@@ -371,25 +449,38 @@ Predicted House Price: $184,289.84
 * Pandas
 * NumPy
 * Scikit-learn
+* CatBoost
 * Matplotlib
 * Seaborn
+* SHAP
 * Joblib
-* Jupyter Notebook
 * Streamlit
+* Jupyter Notebook
 
 ---
 
 # Future Improvements
 
 * Hyperparameter optimization
-* Feature selection
-* Model explainability using SHAP
-* Cloud deployment
-* REST API integration
+* REST API deployment
 * Docker containerization
+* Cloud deployment improvements
+* Advanced model monitoring
+
+---
+
+# Project Team
+
+**Qiyas Training Machine Learning Project**
+
+Group 1:
+
+1. Feven Abebe
+2. Hailemichael Melese
+3. Surafel Solomon
 
 ---
 
 # License
 
-This project is intended for educational and learning purposes.
+This project is developed for educational and learning purposes.
