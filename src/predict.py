@@ -10,6 +10,7 @@ from typing import Any
 
 import joblib
 import pandas as pd
+import numpy as np
 
 from src.feature_engineering import engineer_features
 from src.utils import MODELS_DIR
@@ -194,6 +195,10 @@ def predict_price(
         X
     )[0]
 
+    prediction = np.expm1(
+    prediction
+    )
+
 
     # Prevent negative prices
 
@@ -257,7 +262,15 @@ def predict_batch(
         X
     )
 
+    predictions = np.expm1(
+    predictions
+    )
 
+
+    predictions = np.maximum(
+        predictions,
+        0
+    )
 
     return pd.Series(
         predictions,
