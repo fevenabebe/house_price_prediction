@@ -1,27 +1,40 @@
 # House Price Prediction
 
-An end-to-end machine learning regression project that predicts residential property prices using the **Ames Housing Dataset**.
+An end-to-end machine learning regression project that predicts residential property prices using the Ames Housing Dataset. The project covers the complete machine learning workflow, including data preprocessing, feature engineering, exploratory data analysis (EDA), model training, evaluation, model interpretation, and deployment through an interactive Streamlit web application.
 
-The project implements a complete machine learning workflow including data preprocessing, feature engineering, exploratory data analysis (EDA), model training, evaluation, explainability analysis, and deployment through an interactive Streamlit web application.
+---
 
-🚀 **Live Demo:**
+# 🚀 Live Demo
+
+The deployed Streamlit application is available here:
+
+🔗 **House Price Prediction App**  
 https://housepriceprediction-qiyas.streamlit.app/
+
+The application provides:
+
+- Dataset exploration
+- Exploratory Data Analysis (EDA)
+- Model performance visualization
+- Feature importance analysis
+- SHAP-based model interpretation
+- Interactive house price prediction
 
 ---
 
 # Problem Statement
 
-Accurately estimating residential property prices is a challenging regression problem because housing prices depend on multiple interacting factors such as location, quality, size, age, and amenities.
+Predicting residential house prices is a challenging regression problem because property values depend on multiple interacting factors such as location, size, quality, age, and available facilities.
 
 This project develops a complete machine learning pipeline that:
 
-* Cleans and preprocesses housing data
+* Cleans and preprocesses raw housing data
 * Performs feature engineering to create more informative predictors
 * Conducts exploratory data analysis
-* Trains and compares multiple regression models
-* Selects the best-performing regression model
-* Generates evaluation reports and visualizations
-* Performs model interpretation using feature importance and SHAP
+* Trains and compares multiple regression algorithms
+* Selects the best-performing model
+* Evaluates model performance using regression metrics
+* Interprets model decisions using feature importance and SHAP
 * Deploys the trained model through a Streamlit application
 
 **Target Variable**
