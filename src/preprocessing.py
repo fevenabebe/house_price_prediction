@@ -23,6 +23,7 @@ from src.utils import TARGET_COLUMN
 def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
     """
     Remove duplicate rows from dataframe.
+    
     """
 
     return df.drop_duplicates().reset_index(drop=True)
@@ -31,15 +32,14 @@ def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
 
 def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Remove known Ames Housing anomalies identified during EDA.
+    Remove extreme housing outliers identified during EDA.
 
-    Removes houses with:
-    - GrLivArea > 4500 sq ft
+    Removes properties with:
+    - GrLivArea > 4000 sq ft
     - SalePrice < 300000
 
-    These observations have unusually large living areas
-    but disproportionately low prices and can negatively
-    affect regression models.
+    These observations represent abnormal size-price
+    relationships and negatively affect regression models.
     """
 
     cleaned = df.copy()
@@ -49,16 +49,86 @@ def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
         and "GrLivArea" in cleaned.columns
     ):
 
-        outlier_condition = (
-            (cleaned["GrLivArea"] > 4500)
+        condition = (
+            (cleaned["GrLivArea"] > 4000)
             &
             (cleaned[TARGET_COLUMN] < 300000)
         )
 
-        cleaned = cleaned.loc[~outlier_condition]
+        cleaned = cleaned.loc[~condition]
 
 
     return cleaned.reset_index(drop=True)
+
+def remove_high_missing_features(
+    df: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Remove features with excessive missing values.
+
+    Features removed:
+    - Alley
+    - PoolQC
+    - Fence
+    - MiscFeature
+
+    These features contain more than 80% missing values
+    and provide limited predictive value.
+    """
+
+    cleaned = df.copy()
+
+    columns_to_remove = [
+        "Alley",
+        "PoolQC",
+        "Fence",
+        "MiscFeature"
+    ]
+
+    cleaned = cleaned.drop(
+        columns=columns_to_remove,
+        errors="ignore"
+    )
+
+    return cleaned
+
+def remove_low_variance_features(
+    df: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Remove categorical features with extremely low variation.
+
+    Removed:
+    - Street
+    - Utilities
+    - Condition2
+    - RoofMatl
+
+    These features contain very few minority examples,
+    making them unreliable for model learning.
+    """
+
+    cleaned = df.copy()
+
+
+    columns_to_remove = [
+        "Street",
+        "Utilities",
+        "Condition2",
+        "RoofMatl"
+    ]
+
+
+    cleaned = cleaned.drop(
+        columns=[
+            col
+            for col in columns_to_remove
+            if col in cleaned.columns
+        ]
+    )
+
+
+    return cleaned
 
 
 
@@ -93,22 +163,17 @@ def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
     # --------------------------------------------------------
 
     none_columns = [
-        "Alley",
-        "MasVnrType",
-        "BsmtQual",
-        "BsmtCond",
-        "BsmtExposure",
-        "BsmtFinType1",
-        "BsmtFinType2",
-        "FireplaceQu",
-        "GarageType",
-        "GarageFinish",
-        "GarageQual",
-        "GarageCond",
-        "PoolQC",
-        "Fence",
-        "MiscFeature"
-    ]
+    "MasVnrType",
+    "BsmtQual",
+    "BsmtCond",
+    "BsmtExposure",
+    "BsmtFinType1",
+    "BsmtFinType2",
+    "FireplaceQu",
+    "GarageType",
+    "GarageFinish",
+    "GarageQual",
+    "GarageCond"]   
 
 
     for col in none_columns:
@@ -143,6 +208,16 @@ def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
     # --------------------------------------------------------
     # Remaining categorical missing values
     # --------------------------------------------------------
+
+    # --------------------------------------------------------
+    # Electrical
+    # --------------------------------------------------------
+
+    if "Electrical" in cleaned.columns:
+
+        cleaned["Electrical"] = cleaned["Electrical"].fillna(
+            cleaned["Electrical"].mode()[0]
+        )
 
     categorical_columns = cleaned.select_dtypes(
         include=["object", "string"]
@@ -182,18 +257,35 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     Complete dataframe cleaning pipeline.
 
     Steps:
-    1. Remove known outliers.
-    2. Handle missing values.
-    3. Remove duplicates.
+    1. Remove extreme outliers.
+    2. Remove low-information categorical features.
+    3. Handle missing values.
+    4. Remove duplicates.
     """
 
     cleaned = df.copy()
 
-    cleaned = remove_outliers(cleaned)
 
-    cleaned = handle_missing_values(cleaned)
+    cleaned = remove_high_missing_features(
+        cleaned
+    )
 
-    cleaned = remove_duplicates(cleaned)
+    cleaned = remove_low_variance_features(
+        cleaned
+    )
+
+    cleaned = remove_outliers(
+        cleaned
+    )
+
+    cleaned = handle_missing_values(
+        cleaned
+    )
+
+    cleaned = remove_duplicates(
+        cleaned
+    )
+
 
     return cleaned.reset_index(drop=True)
 

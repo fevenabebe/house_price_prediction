@@ -8,7 +8,7 @@ import json
 
 import joblib
 import pandas as pd
-
+import numpy as np
 from sklearn.model_selection import train_test_split, GridSearchCV
 
 from sklearn.pipeline import Pipeline
@@ -21,10 +21,18 @@ from sklearn.linear_model import (
 
 from sklearn.tree import DecisionTreeRegressor
 
+
 from sklearn.ensemble import (
     RandomForestRegressor,
     GradientBoostingRegressor,
+    ExtraTreesRegressor,
+    AdaBoostRegressor,
 )
+from xgboost import XGBRegressor
+from lightgbm import LGBMRegressor
+from catboost import CatBoostRegressor
+
+
 
 from sklearn.svm import SVR
 
@@ -108,7 +116,7 @@ def prepare_data():
         columns=[TARGET_COLUMN]
     )
 
-    y = df[TARGET_COLUMN]
+    y = np.log1p(df[TARGET_COLUMN])
 
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -175,8 +183,51 @@ def create_models():
             ),
 
 
+        "Extra Trees":
+            ExtraTreesRegressor(
+                n_estimators=200,
+                random_state=42,
+                n_jobs=-1
+            ),
+
+
         "Gradient Boosting":
             GradientBoostingRegressor(
+                random_state=42
+            ),
+
+
+        "AdaBoost":
+            AdaBoostRegressor(
+                random_state=42
+            ),
+
+
+        "XGBoost": 
+            XGBRegressor(
+            n_estimators=400,       
+            learning_rate=0.03,
+            max_depth=3,
+            min_child_weight=5,     # NEW: Prevents splits on small, noisy groups of houses
+            subsample=0.7,          # Reduced from 0.8 to inject randomness
+            colsample_bytree=0.7,   # Reduced from 0.8 to force variance
+            random_state=42
+        ),
+
+        "CatBoost": CatBoostRegressor(
+            iterations=500,
+            learning_rate=0.03,
+            depth=4,                # Reduced depth from 6 to 4 to stop deep memorization
+            l2_leaf_reg=5,          # Increased penalty from default 3 to 5
+            random_state=42,
+            verbose=0
+        ),
+
+
+        "LightGBM":
+            LGBMRegressor(
+                n_estimators=500,
+                learning_rate=0.03,
                 random_state=42
             ),
 
@@ -237,49 +288,32 @@ def tune_model(
     )
 
 
-    if model_name == "Random Forest":
+    if model_name == "CatBoost":
+            params = {
 
-        params = {
+            "regressor__iterations":
+                [500],
 
-            "regressor__n_estimators":
-                [100, 200],
+            "regressor__learning_rate":
+                [0.03, 0.05, 0.07],
 
-            "regressor__max_depth":
-                [10, 20, None],
+            "regressor__depth":
+                [3, 4],
 
-            "regressor__min_samples_split":
-                [2, 5]
+            "regressor__l2_leaf_reg":
+                [3, 5]
 
         }
-
-
-    elif model_name == "Gradient Boosting":
-
-        params = {
-
-        "regressor__n_estimators":
-            [100, 200, 300],
-
-        "regressor__learning_rate":
-            [0.01, 0.05, 0.1],
-
-        "regressor__max_depth":
-            [2, 3, 5]
-
-  
-    }
-
-
     else:
 
         raise ValueError(
-            "Unsupported model for tuning"
-        )
+                f"Unsupported model for tuning: {model_name}"
+            )
 
 
     grid = GridSearchCV(
 
-        pipeline,
+        estimator=pipeline,
 
         param_grid=params,
 
@@ -287,20 +321,37 @@ def tune_model(
 
         scoring="r2",
 
-        n_jobs=-1
+        n_jobs=-1,
+
+        verbose=1
 
     )
 
 
     grid.fit(
+
         X_train,
+
         y_train
+
     )
 
 
     print(
-        "Best parameters:",
+
+        "\nBest parameters:",
+
         grid.best_params_
+
+    )
+
+
+    print(
+
+        "Best CV R²:",
+
+        round(grid.best_score_, 4)
+
     )
 
 
@@ -406,56 +457,35 @@ def train():
     # HYPERPARAMETER TUNING
     # ==========================================================
 
-    # Tune Gradient Boosting
-    gb_pipeline = build_pipeline(
-        GradientBoostingRegressor(random_state=42),
+    # Tune CatBoost
+    cat_pipeline = build_pipeline(
+        CatBoostRegressor(
+            random_state=42,
+            verbose=0
+        ),
         numerical_features,
         categorical_features
     )
 
-    tuned_gb = tune_model(
-        gb_pipeline,
+    tuned_cat = tune_model(
+        cat_pipeline,
         X_train,
         y_train,
-        "Gradient Boosting"
+        "CatBoost"
     )
 
 
-    # Tune Random Forest
-    rf_pipeline = build_pipeline(
-        RandomForestRegressor(random_state=42),
-        numerical_features,
-        categorical_features
-    )
+        # ==========================================================
+        # EVALUATE TUNED MODELS
+        # ==========================================================
 
-    tuned_rf = tune_model(
-        rf_pipeline,
-        X_train,
-        y_train,
-        "Random Forest"
-    )
-
-
-    # ==========================================================
-    # EVALUATE TUNED MODELS
-    # ==========================================================
-
-    tuned_gb_metrics, _, _ = evaluate_model(
-        tuned_gb,
+    tuned_cat_metrics, _, _ = evaluate_model(
+        tuned_cat,
         X_train,
         X_test,
         y_train,
         y_test,
-        "Tuned Gradient Boosting"
-    )
-
-    tuned_rf_metrics, _, _ = evaluate_model(
-        tuned_rf,
-        X_train,
-        X_test,
-        y_train,
-        y_test,
-        "Tuned Random Forest"
+        "Tuned CatBoost"
     )
 
 
@@ -468,8 +498,7 @@ def train():
             results_df,
             pd.DataFrame(
                 [
-                    tuned_gb_metrics,
-                    tuned_rf_metrics
+                    tuned_cat_metrics
                 ]
             )
         ],
@@ -482,9 +511,7 @@ def train():
     # ==========================================================
     # SELECT FINAL MODEL
     # ==========================================================
-
-    trained_models["Tuned Gradient Boosting"] = tuned_gb
-    trained_models["Tuned Random Forest"] = tuned_rf
+    trained_models["Tuned CatBoost"] = tuned_cat
 
     final_model_name = select_best_model(results_df)
 

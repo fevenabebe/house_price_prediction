@@ -132,15 +132,12 @@ def evaluate_model(
     Train model and evaluate performance.
     """
 
-
     start = time.perf_counter()
-
 
     pipeline.fit(
         X_train,
         y_train
     )
-
 
     train_time = (
         time.perf_counter()
@@ -148,12 +145,20 @@ def evaluate_model(
     )
 
 
-
     start = time.perf_counter()
-
 
     predictions = pipeline.predict(
         X_test
+    )
+
+    # Convert predictions from log scale back to original SalePrice scale
+    predictions = np.expm1(
+        predictions
+    )
+
+    # Convert actual values back to original SalePrice scale
+    y_test_original = np.expm1(
+        y_test
     )
 
 
@@ -163,10 +168,9 @@ def evaluate_model(
     )
 
 
-
     metrics = compute_regression_metrics(
 
-        y_test,
+        y_test_original,
 
         predictions,
 
@@ -658,7 +662,6 @@ def evaluate_saved_model():
     - Residual plot
     """
 
-
     ensure_output_dirs()
 
 
@@ -685,7 +688,6 @@ def evaluate_saved_model():
     # Prepare test data
     # -----------------------------
 
-
     df = load_raw_data()
 
 
@@ -704,7 +706,10 @@ def evaluate_saved_model():
     )
 
 
-    y = df[TARGET_COLUMN]
+    # Keep target in log scale because model was trained on log target
+    y = np.log1p(
+        df[TARGET_COLUMN]
+    )
 
 
     from sklearn.model_selection import train_test_split
@@ -726,9 +731,20 @@ def evaluate_saved_model():
     # Prediction
     # -----------------------------
 
-
     predictions = model.predict(
         X_test
+    )
+
+
+    # Convert predictions back to original SalePrice scale
+    predictions = np.expm1(
+        predictions
+    )
+
+
+    # Convert true values back to original SalePrice scale
+    y_test_original = np.expm1(
+        y_test
     )
 
 
@@ -736,10 +752,9 @@ def evaluate_saved_model():
     # Metrics
     # -----------------------------
 
-
     metrics = compute_regression_metrics(
 
-        y_test,
+        y_test_original,
 
         predictions
 
@@ -756,11 +771,9 @@ def evaluate_saved_model():
     print(metrics)
 
 
-
     # -----------------------------
     # Save metrics
     # -----------------------------
-
 
     metrics_path = (
         REPORTS_DIR /
@@ -784,10 +797,9 @@ def evaluate_saved_model():
     # Generate plots
     # -----------------------------
 
-
     plot_actual_vs_predicted(
 
-        y_test,
+        y_test_original,
 
         predictions
 
@@ -796,17 +808,16 @@ def evaluate_saved_model():
 
     plot_residuals(
 
-        y_test,
+        y_test_original,
 
         predictions
 
     )
 
 
-    print(
-        "\nEvaluation completed successfully."
-    )
+   
 
 
 if __name__ == "__main__":
     evaluate_saved_model()
+    

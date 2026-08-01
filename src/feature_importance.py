@@ -54,22 +54,6 @@ def extract_feature_importance():
     )
 
 
-    # ================================
-    # Save CSV
-    # ================================
-
-    METRICS_DIR.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-
-    importance_df.to_csv(
-        METRICS_DIR / "feature_importance.csv",
-        index=False
-    )
-
-
     print("\nTop 20 Important Features:")
     print(
         importance_df.head(20)
