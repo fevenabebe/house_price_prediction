@@ -7,11 +7,9 @@ from __future__ import annotations
 import pandas as pd
 
 
-
 # ============================================================
 # TOTAL HOUSE AREA FEATURES
 # ============================================================
-
 
 def add_total_sf(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -45,50 +43,13 @@ def add_total_sf(df: pd.DataFrame) -> pd.DataFrame:
 
 
 
-def add_total_area_score(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Combine important living spaces.
-
-    Includes:
-    - Above-ground living area
-    - Basement area
-    - Garage area
-
-    Larger usable space generally increases house value.
-    """
-
-    engineered = df.copy()
-
-    columns = [
-        "GrLivArea",
-        "TotalBsmtSF",
-        "GarageArea"
-    ]
-
-    if all(col in engineered.columns for col in columns):
-
-        engineered["TotalAreaScore"] = (
-            engineered["GrLivArea"]
-            +
-            engineered["TotalBsmtSF"]
-            +
-            engineered["GarageArea"]
-        )
-
-    return engineered
-
-
-
 # ============================================================
 # BATHROOM FEATURES
 # ============================================================
 
-
 def add_total_bathrooms(df: pd.DataFrame) -> pd.DataFrame:
     """
     Create weighted bathroom count.
-
-    Full bathrooms contribute more than half bathrooms.
     """
 
     engineered = df.copy()
@@ -120,10 +81,9 @@ def add_total_bathrooms(df: pd.DataFrame) -> pd.DataFrame:
 # AGE FEATURES
 # ============================================================
 
-
 def add_house_age(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Calculate house age at the time of sale.
+    Calculate house age at sale.
     """
 
     engineered = df.copy()
@@ -145,7 +105,7 @@ def add_house_age(df: pd.DataFrame) -> pd.DataFrame:
 
 def add_year_since_remodel(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Calculate years since last remodeling.
+    Calculate years since remodeling.
     """
 
     engineered = df.copy()
@@ -169,7 +129,6 @@ def add_year_since_remodel(df: pd.DataFrame) -> pd.DataFrame:
 # OUTDOOR FEATURES
 # ============================================================
 
-
 def add_total_porch_area(df: pd.DataFrame) -> pd.DataFrame:
     """
     Combine outdoor living areas.
@@ -185,16 +144,16 @@ def add_total_porch_area(df: pd.DataFrame) -> pd.DataFrame:
         "WoodDeckSF"
     ]
 
-    available_columns = [
+    available = [
         col
         for col in porch_columns
         if col in engineered.columns
     ]
 
-    if available_columns:
+    if available:
 
         engineered["TotalPorchSF"] = (
-            engineered[available_columns]
+            engineered[available]
             .sum(axis=1)
         )
 
@@ -203,38 +162,12 @@ def add_total_porch_area(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # ============================================================
-# QUALITY FEATURES
+# INTERACTION FEATURES
 # ============================================================
-
-
-def add_total_quality_score(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Combine overall quality and condition.
-
-    Higher values represent better quality houses.
-    """
-
-    engineered = df.copy()
-
-    if (
-        "OverallQual" in engineered.columns
-        and "OverallCond" in engineered.columns
-    ):
-
-        engineered["OverallScore"] = (
-            engineered["OverallQual"]
-            *
-            engineered["OverallCond"]
-        )
-
-    return engineered
-
-
 
 def add_quality_living_area(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Capture interaction between house quality
-    and living area.
+    Interaction between quality and living area.
     """
 
     engineered = df.copy()
@@ -254,14 +187,9 @@ def add_quality_living_area(df: pd.DataFrame) -> pd.DataFrame:
 
 
 
-# ============================================================
-# GARAGE FEATURES
-# ============================================================
-
-
 def add_garage_score(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Combine garage capacity and size.
+    Combine garage size and capacity.
     """
 
     engineered = df.copy()
@@ -282,27 +210,32 @@ def add_garage_score(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # ============================================================
-# ROOM FEATURES
+# OPTIONAL OUTLIER HANDLING
 # ============================================================
 
-
-def add_total_rooms(df: pd.DataFrame) -> pd.DataFrame:
+def remove_extreme_area_outliers(
+    df: pd.DataFrame
+) -> pd.DataFrame:
     """
-    Combine total rooms and bedrooms.
+    Remove known Ames Housing extreme GrLivArea outliers.
+
+    These are very large houses sold at unusually low prices.
     """
 
     engineered = df.copy()
 
     if (
-        "TotRmsAbvGrd" in engineered.columns
-        and "BedroomAbvGr" in engineered.columns
+        "GrLivArea" in engineered.columns
+        and "SalePrice" in engineered.columns
     ):
 
-        engineered["TotalRooms"] = (
-            engineered["TotRmsAbvGrd"]
-            +
-            engineered["BedroomAbvGr"]
-        )
+        engineered = engineered[
+            ~(
+                (engineered["GrLivArea"] > 4000)
+                &
+                (engineered["SalePrice"] < 300000)
+            )
+        ]
 
     return engineered
 
@@ -312,39 +245,51 @@ def add_total_rooms(df: pd.DataFrame) -> pd.DataFrame:
 # MAIN FEATURE ENGINEERING PIPELINE
 # ============================================================
 
-
-def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+def engineer_features(
+    df: pd.DataFrame
+) -> pd.DataFrame:
     """
     Apply all feature engineering operations.
 
-    Important:
-    - Uses only input features.
-    - Does not use SalePrice.
-    - Prevents target leakage.
+    Does not use SalePrice for feature creation.
     """
 
     engineered = df.copy()
 
 
-    engineered = add_total_sf(engineered)
+    engineered = add_total_sf(
+        engineered
+    )
 
-    engineered = add_total_area_score(engineered)
 
-    engineered = add_total_bathrooms(engineered)
+    engineered = add_total_bathrooms(
+        engineered
+    )
 
-    engineered = add_house_age(engineered)
 
-    engineered = add_year_since_remodel(engineered)
+    engineered = add_house_age(
+        engineered
+    )
 
-    engineered = add_total_porch_area(engineered)
 
-    engineered = add_total_quality_score(engineered)
+    engineered = add_year_since_remodel(
+        engineered
+    )
 
-    engineered = add_quality_living_area(engineered)
 
-    engineered = add_garage_score(engineered)
+    engineered = add_total_porch_area(
+        engineered
+    )
 
-    engineered = add_total_rooms(engineered)
+
+    engineered = add_quality_living_area(
+        engineered
+    )
+
+
+    engineered = add_garage_score(
+        engineered
+    )
 
 
     return engineered
