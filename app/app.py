@@ -342,7 +342,7 @@ def render_sidebar():
                 House Price AI
             </div>
             <div style="font-size:0.78rem; color:#B8B3E8; margin-top:2px;">
-                Ames Housing • ML Portfolio
+                Ames Housing 
             </div>
         </div>
         """,
@@ -517,7 +517,7 @@ def render_home():
             "house prices using the Ames Housing Dataset — from data cleaning and "
             "feature engineering to model tuning, evaluation, and deployment."
         ),
-        badge="Machine Learning Portfolio",
+        badge="Machine Learning",
     )
 
     with st.expander("📋 What this project covers", expanded=False):
