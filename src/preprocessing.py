@@ -452,3 +452,34 @@ def build_preprocessor(
         remainder="drop"
 
     )
+
+# ============================================================
+# MAIN
+# ============================================================
+
+def main():
+    """
+    Load the raw training dataset, apply the complete cleaning
+    pipeline, and save the cleaned dataset.
+    """
+
+    input_path = "data/train.csv"
+    output_path = "data/train_cleaned.csv"
+
+    print(f"Loading dataset from: {input_path}")
+
+    train = pd.read_csv(input_path)
+
+    print(f"Original shape: {train.shape}")
+
+    cleaned_train = clean_dataframe(train)
+
+    print(f"Cleaned shape: {cleaned_train.shape}")
+
+    cleaned_train.to_csv(output_path, index=False)
+
+    print(f"Cleaned dataset saved to: {output_path}")
+
+
+if __name__ == "__main__":
+    main()

@@ -253,46 +253,6 @@ def plot_log_saleprice_distribution(df):
     )
 
 
-# ============================================================
-# MISSING VALUES
-# ============================================================
-
-def plot_missing_values(df):
-
-    missing = df.isnull().sum()
-    missing = missing[missing > 0].sort_values(ascending=False)
-
-    if missing.empty:
-        fig = plt.figure(figsize=(10, 5))
-        plt.title("Missing Values (none found)")
-        return save_fig(
-            fig,
-            "missing_values"
-        )
-
-    missing_percent = (missing / len(df) * 100).round(2)
-
-    fig, ax = plt.subplots(figsize=(12, 6))
-
-    sns.barplot(
-        x=missing.index,
-        y=missing.values,
-        ax=ax
-    )
-
-    ax.set_xlabel("Features")
-    ax.set_ylabel("Missing Count")
-    ax.set_title("Missing Values")
-    plt.setp(ax.get_xticklabels(), rotation=90)
-
-    # Annotate bars with missing percentage
-    for i, (count, pct) in enumerate(zip(missing.values, missing_percent.values)):
-        ax.text(i, count, f"{pct}%", ha="center", va="bottom", fontsize=8)
-
-    return save_fig(
-        fig,
-        "missing_values"
-    )
 
 
 # ============================================================
@@ -308,7 +268,6 @@ def generate_all_eda_figures(df):
     paths.append(plot_categorical_vs_saleprice(df))
     paths.append(plot_correlation_heatmap(df))
     paths.append(plot_numeric_features_grid(df))
-    paths.append(plot_missing_values(df))
 
     return paths
 
@@ -323,7 +282,7 @@ if __name__ == "__main__":
     print("GENERATING EDA VISUALIZATIONS (from house_eda.ipynb)")
     print("=" * 60)
 
-    df = pd.read_csv(DATA_DIR / "train.csv")
+    df = pd.read_csv(DATA_DIR / "train_cleaned.csv")
 
     print("Dataset shape:", df.shape)
 
