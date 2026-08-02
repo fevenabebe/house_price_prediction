@@ -993,7 +993,6 @@ def render_eda():
         Ames Housing Dataset. The visualizations highlight:
 
         - SalePrice distribution
-        - Missing value analysis
         - Feature correlations
         - Numerical feature relationships
         - Categorical feature relationships
@@ -1023,11 +1022,6 @@ def render_eda():
         (
             "Log Transformed SalePrice Distribution",
             "log_saleprice_distribution.png"
-        ),
-
-        (
-            "Missing Values Analysis",
-            "missing_values.png"
         ),
 
         (
