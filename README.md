@@ -335,6 +335,12 @@ The following regression algorithms were trained and compared:
 * Random Forest Regressor
 * Gradient Boosting Regressor
 * CatBoost Regressor
+* Support Vector Regressor (SVR)
+* XGBoost Regressor
+* Extra Trees Regressor
+* AdaBoost Regressor
+* CatBoost Regressor
+* LightGBM Regressor
 
 Evaluation metrics:
 
