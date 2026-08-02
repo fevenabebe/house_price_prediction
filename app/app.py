@@ -53,6 +53,266 @@ st.set_page_config(
 )
 
 # ============================================================
+# CUSTOM THEME / STYLING
+# ============================================================
+
+CUSTOM_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    --primary: #6C63FF;
+    --primary-dark: #4B3FE0;
+    --accent: #00C2A8;
+    --accent-warm: #FF7A59;
+    --bg-soft: #F6F7FB;
+    --card-bg: #FFFFFF;
+    --text-dark: #1F2333;
+    --text-muted: #6B7280;
+}
+
+html, body, [class*="css"]  {
+    font-family: 'Inter', 'Poppins', sans-serif;
+}
+
+.stApp {
+    background: radial-gradient(circle at 15% 0%, #eef0ff 0%, var(--bg-soft) 45%, #f2fbf9 100%);
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Poppins', sans-serif !important;
+    color: var(--text-dark);
+    letter-spacing: -0.02em;
+}
+
+h1 {
+    background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800 !important;
+    padding-bottom: 4px;
+}
+
+p, li, span, label {
+    color: var(--text-dark);
+}
+
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #241E4E 0%, #3A2E7A 55%, #1B1640 100%);
+}
+
+section[data-testid="stSidebar"] * {
+    color: #F2F1FB !important;
+}
+
+section[data-testid="stSidebar"] h1 {
+    -webkit-text-fill-color: #FFFFFF !important;
+    background: none !important;
+    font-size: 1.4rem !important;
+}
+
+section[data-testid="stSidebar"] .stCaption, section[data-testid="stSidebar"] small {
+    color: #B8B3E8 !important;
+}
+
+section[data-testid="stSidebar"] div[role="radiogroup"] label {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 10px 14px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    width: 100%;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
+    background: rgba(255,255,255,0.16);
+    transform: translateX(3px);
+}
+
+section[data-testid="stSidebar"] div[role="radiogroup"] label[data-baseweb="radio"] > div:first-child {
+    display: none;
+}
+
+section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
+    background: linear-gradient(90deg, var(--primary) 0%, #8B7CFF 100%);
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(108, 99, 255, 0.45);
+    font-weight: 600;
+}
+
+.stButton > button {
+    background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.65rem 1.4rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 6px 16px rgba(108, 99, 255, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(108, 99, 255, 0.45);
+    color: white;
+}
+
+.stButton > button:active {
+    transform: translateY(0px);
+}
+
+div[data-testid="stMetric"] {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 1.1rem 1.2rem;
+    box-shadow: 0 4px 18px rgba(31, 35, 51, 0.06);
+    border: 1px solid rgba(108, 99, 255, 0.08);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+div[data-testid="stMetric"]:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 26px rgba(31, 35, 51, 0.10);
+}
+
+div[data-testid="stMetricLabel"] {
+    color: var(--text-muted) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.06em;
+}
+
+div[data-testid="stMetricValue"] {
+    color: var(--text-dark) !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-weight: 700 !important;
+}
+
+div[data-testid="stDataFrame"] {
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(31, 35, 51, 0.06);
+    border: 1px solid rgba(31, 35, 51, 0.06);
+}
+
+div[data-testid="stAlert"] {
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 4px 14px rgba(31, 35, 51, 0.06);
+}
+
+div[data-testid="stImage"] img {
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(31, 35, 51, 0.10);
+}
+
+hr {
+    border-top: 1px solid rgba(108, 99, 255, 0.15) !important;
+    margin: 1.6rem 0 !important;
+}
+
+.stTextInput input, .stNumberInput input, div[data-baseweb="select"] > div {
+    border-radius: 10px !important;
+    border: 1px solid rgba(31, 35, 51, 0.12) !important;
+}
+
+.stSlider [data-baseweb="slider"] {
+    padding-top: 6px;
+}
+
+.hero-banner {
+    background: linear-gradient(120deg, var(--primary) 0%, #8B7CFF 45%, var(--accent) 100%);
+    border-radius: 22px;
+    padding: 2.4rem 2.6rem;
+    color: white;
+    box-shadow: 0 16px 40px rgba(108, 99, 255, 0.30);
+    margin-bottom: 1.6rem;
+}
+
+.hero-banner h1 {
+    -webkit-text-fill-color: white !important;
+    background: none !important;
+    color: white !important;
+    font-size: 2.3rem !important;
+    margin-bottom: 0.4rem !important;
+}
+
+.hero-banner p {
+    color: rgba(255,255,255,0.92) !important;
+    font-size: 1.05rem;
+    max-width: 720px;
+}
+
+.hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.18);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.9rem;
+}
+
+.section-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(108, 99, 255, 0.08);
+    color: var(--primary-dark);
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    margin-bottom: 0.6rem;
+}
+
+.team-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 1.3rem 1.4rem;
+    box-shadow: 0 4px 18px rgba(31, 35, 51, 0.06);
+    border: 1px solid rgba(108, 99, 255, 0.08);
+    margin-bottom: 0.8rem;
+    transition: transform 0.18s ease;
+}
+
+.team-card:hover {
+    transform: translateY(-2px);
+}
+</style>
+"""
+
+
+def load_custom_css():
+    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+
+
+def render_hero(title: str, subtitle: str, badge: str = "Portfolio Project"):
+    st.markdown(
+        f"""
+        <div class="hero-banner">
+            <span class="hero-badge">✨ {badge}</span>
+            <h1>{title}</h1>
+            <p>{subtitle}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def section_title(icon: str, text: str):
+    st.markdown(
+        f"""<div class="section-chip">{icon} {text}</div>""",
+        unsafe_allow_html=True,
+    )
+
+# ============================================================
 # NAVIGATION
 # ============================================================
 
@@ -72,17 +332,35 @@ PAGES = [
 
 def render_sidebar():
 
-    st.sidebar.title("🏠 House Price AI")
+    load_custom_css()
 
+    st.sidebar.markdown(
+        """
+        <div style="text-align:center; padding: 0.6rem 0 1.2rem 0;">
+            <div style="font-size: 2.6rem; line-height: 1;">🏠</div>
+            <div style="font-family:'Poppins',sans-serif; font-size:1.25rem; font-weight:700; color:white; margin-top:6px;">
+                House Price AI
+            </div>
+            <div style="font-size:0.78rem; color:#B8B3E8; margin-top:2px;">
+                Ames Housing • ML Portfolio
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
+    st.sidebar.markdown("<hr style='border-top:1px solid rgba(255,255,255,0.12);'>", unsafe_allow_html=True)
 
     page = st.sidebar.radio(
         "Navigation",
-        PAGES
+        PAGES,
+        label_visibility="collapsed",
     )
 
+    st.sidebar.markdown("<hr style='border-top:1px solid rgba(255,255,255,0.12);'>", unsafe_allow_html=True)
+
     st.sidebar.caption(
-        "House Price Prediction Portfolio"
+        "🏡 House Price Prediction Portfolio"
     )
 
     return page
@@ -232,26 +510,28 @@ def get_evaluation_figures():
 
 def render_home():
 
-    st.title("🏠 House Price Prediction")
-
-    st.markdown(
-        """
-        ## Machine Learning Portfolio Project
-
-        An end-to-end machine learning application that predicts
-        residential house prices using the **Ames Housing Dataset**.
-
-        This project includes:
-
-        - Data cleaning and preprocessing
-        - Exploratory Data Analysis
-        - Feature engineering
-        - Regression model comparison
-        - Hyperparameter tuning
-        - Model evaluation
-        - Deployment with Streamlit
-        """
+    render_hero(
+        title="🏠 House Price Prediction",
+        subtitle=(
+            "An end-to-end machine learning application that predicts residential "
+            "house prices using the Ames Housing Dataset — from data cleaning and "
+            "feature engineering to model tuning, evaluation, and deployment."
+        ),
+        badge="Machine Learning Portfolio",
     )
+
+    with st.expander("📋 What this project covers", expanded=False):
+        st.markdown(
+            """
+            - 🧹 Data cleaning and preprocessing
+            - 📊 Exploratory Data Analysis
+            - 🔧 Feature engineering
+            - 🤖 Regression model comparison
+            - 🎯 Hyperparameter tuning
+            - 📈 Model evaluation
+            - 🚀 Deployment with Streamlit
+            """
+        )
 
     st.divider()
 
@@ -349,7 +629,7 @@ def render_home():
     # PROJECT OVERVIEW CARDS
     # ========================================================
 
-    st.subheader("📌 Project Overview")
+    section_title("📌", "Project Overview")
 
 
     col1, col2, col3, col4 = st.columns(4)
@@ -396,7 +676,7 @@ def render_home():
     # MODEL PERFORMANCE
     # ========================================================
 
-    st.subheader("🏆 Best Model Performance")
+    section_title("🏆", "Best Model Performance")
 
 
     col1, col2, col3 = st.columns(3)
@@ -462,43 +742,50 @@ def render_home():
     # WORKFLOW
     # ========================================================
 
-    st.subheader(
-        "🔄 Machine Learning Workflow"
+    section_title("🔄", "Machine Learning Workflow")
+
+    workflow_steps = [
+        ("🏠", "Dataset"),
+        ("🧹", "Cleaning"),
+        ("🔧", "Feature Eng."),
+        ("📊", "EDA"),
+        ("🤖", "Training"),
+        ("📈", "Evaluation"),
+        ("🏡", "Prediction"),
+        ("🚀", "Deployment"),
+    ]
+
+    steps_html = "".join(
+        f"""
+        <div style="display:flex; flex-direction:column; align-items:center; min-width:88px;">
+            <div style="width:56px; height:56px; border-radius:50%;
+                        background:linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+                        display:flex; align-items:center; justify-content:center;
+                        font-size:1.5rem; box-shadow:0 6px 16px rgba(108,99,255,0.3);">
+                {icon}
+            </div>
+            <div style="margin-top:8px; font-size:0.78rem; font-weight:600; color:var(--text-dark); text-align:center;">
+                {label}
+            </div>
+        </div>
+        """
+        + (
+            """<div style="flex:1; height:2px; background:linear-gradient(90deg, var(--primary), var(--accent));
+                            opacity:0.35; margin: 27px 6px 0 6px; min-width:16px;"></div>"""
+            if idx < len(workflow_steps) - 1 else ""
+        )
+        for idx, (icon, label) in enumerate(workflow_steps)
     )
 
-
-    st.info(
-        """
-        🏠 Dataset
-
-        ↓
-
-        🧹 Data Cleaning
-
-        ↓
-
-        🔧 Feature Engineering
-
-        ↓
-
-        📊 Exploratory Data Analysis
-
-        ↓
-
-        🤖 Model Training
-
-        ↓
-
-        📈 Evaluation & Comparison
-
-        ↓
-
-        🏡 Price Prediction
-
-        ↓
-
-        🚀 Deployment
-        """
+    st.markdown(
+        f"""
+        <div style="background:var(--card-bg); border-radius:16px; padding:1.4rem 1.2rem;
+                    box-shadow:0 4px 18px rgba(31,35,51,0.06); border:1px solid rgba(108,99,255,0.08);
+                    display:flex; align-items:flex-start; overflow-x:auto;">
+            {steps_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 
@@ -1337,12 +1624,15 @@ def render_prediction_page():
 
     st.markdown(
         """
-        Use the form below to estimate a house price using the trained
-        CatBoost regression model.
-
-        The prediction uses the same feature engineering pipeline applied
-        during model training.
-        """
+        <div style="background:var(--card-bg); border-radius:16px; padding:1.1rem 1.4rem;
+                    box-shadow:0 4px 18px rgba(31,35,51,0.06); border:1px solid rgba(108,99,255,0.08);
+                    margin-bottom:0.4rem;">
+            Fill in the property details below to estimate a house price using the
+            trained <strong>CatBoost</strong> regression model. The prediction uses the
+            same feature engineering pipeline applied during model training.
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 
@@ -1353,9 +1643,7 @@ def render_prediction_page():
     # HOUSE INFORMATION
     # ============================================================
 
-    st.subheader(
-        "🏠 Basic House Information"
-    )
+    section_title("🏠", "Basic House Information")
 
 
     col1, col2, col3 = st.columns(3)
@@ -1430,9 +1718,7 @@ def render_prediction_page():
 
     st.divider()
 
-    st.subheader(
-        "📐 Size and Living Space"
-    )
+    section_title("📐", "Size and Living Space")
 
 
     col1, col2, col3 = st.columns(3)
@@ -1494,9 +1780,7 @@ def render_prediction_page():
 
     st.divider()
 
-    st.subheader(
-        "🚗 Facilities"
-    )
+    section_title("🚗", "Facilities")
 
 
     col1, col2, col3 = st.columns(3)
@@ -1620,19 +1904,29 @@ def render_prediction_page():
                 "Prediction Completed Successfully"
             )
 
+            st.balloons()
 
-            st.metric(
-                label="🏠 Estimated House Price",
-                value=f"${prediction:,.0f}"
+            st.markdown(
+                f"""
+                <div style="background:linear-gradient(120deg, var(--primary) 0%, #8B7CFF 45%, var(--accent) 100%);
+                            border-radius:22px; padding:2rem 2.2rem; color:white; text-align:center;
+                            box-shadow:0 16px 40px rgba(108,99,255,0.30); margin-bottom:0.6rem;">
+                    <div style="font-size:0.85rem; letter-spacing:0.08em; text-transform:uppercase; opacity:0.9;">
+                        🏠 Estimated House Price
+                    </div>
+                    <div style="font-family:'Poppins',sans-serif; font-size:3rem; font-weight:800; margin-top:6px;">
+                        ${prediction:,.0f}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
 
 
             st.divider()
 
 
-            st.subheader(
-                "📊 Prediction Reliability"
-            )
+            section_title("📊", "Prediction Reliability")
 
 
             col1, col2, col3 = st.columns(3)
@@ -1688,47 +1982,50 @@ def render_prediction_page():
 
 def render_about_team():
 
-
-    st.markdown(
-        """
-        ## Group 1 - House Price Prediction Project
-
-        This project was developed as part of the **Qiyas AI Training Program**.
-
-        The project focuses on building an end-to-end machine learning
-        regression system for predicting house prices using the Ames Housing
-        Dataset.
-
-        ---
-        """
+    render_hero(
+        title="👥 Group 1",
+        subtitle=(
+            "Developed as part of the Qiyas AI Training Program — building an "
+            "end-to-end machine learning regression system for predicting house "
+            "prices using the Ames Housing Dataset."
+        ),
+        badge="About the Team",
     )
 
-
-    st.subheader(
-        "👨‍💻 Team Members"
-    )
-
+    section_title("👨‍💻", "Team Members")
 
     team_members = [
-        "1. Feven Abebe",
-        "2. Hailemichael Melese",
-        "3. Surafel Solomon"
+        ("Feven Abebe", "🧑‍💻"),
+        ("Hailemichael Melese", "👨‍💻"),
+        ("Surafel Solomon", "👨‍💻"),
     ]
 
+    cols = st.columns(len(team_members))
 
-    for member in team_members:
+    for col, (member, avatar) in zip(cols, team_members):
 
-        st.markdown(
-            f"### {member}"
-        )
+        with col:
+
+            st.markdown(
+                f"""
+                <div class="team-card" style="text-align:center;">
+                    <div style="font-size:2.2rem;">{avatar}</div>
+                    <div style="font-family:'Poppins',sans-serif; font-weight:700; margin-top:6px;">
+                        {member}
+                    </div>
+                    <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">
+                        Group 1 Member
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
 
     st.divider()
 
 
-    st.subheader(
-        "📌 Project Information"
-    )
+    section_title("📌", "Project Information")
 
 
     st.write(
