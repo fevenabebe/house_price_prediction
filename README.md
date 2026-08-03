@@ -304,14 +304,13 @@ house-price-prediction/
 │   ├── figures/
 │   ├── metrics/
 │   └── reports/
-│
+│__ Technical_Report_and_PPT
 ├── src/
 │   ├── preprocessing.py
 │   ├── feature_engineering.py
 │   ├── train.py
 │   ├── evaluate.py
 │   ├── predict.py
-│   ├── feature_importance.py
 │   ├── explainability.py
 │   └── utils.py
 |   |__ eda_visualization.py
