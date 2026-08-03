@@ -58,7 +58,7 @@ This project uses the **Ames Housing Dataset**, containing detailed information 
 | Item              | Value     |
 | ----------------- | --------- |
 | Training Records  | 1,460     |
-| Original Features | 79        |
+| Original Features | 80        |
 | Target Variable   | SalePrice |
 
 Important features include:
