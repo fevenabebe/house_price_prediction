@@ -1558,61 +1558,7 @@ def render_model_interpretation():
     st.divider()
 
 
-    # ========================================================
-    # SHAP WATERFALL
-    # ========================================================
-
-    st.header(
-        "🏠 Individual Prediction Explanation"
-    )
-
-
-    waterfall = list(
-        feature_folder.glob(
-            "*waterfall*.png"
-        )
-    )
-
-
-    if waterfall:
-
-        for image in waterfall:
-
-            st.image(
-                str(image),
-                caption="SHAP Waterfall Explanation",
-                use_container_width=True
-            )
-
-    else:
-
-        st.info(
-            "SHAP waterfall plot not found."
-        )
-
-
-    st.markdown(
-        """
-        ### Interpretation
-
-        The waterfall plot explains one specific prediction.
-
-        Positive contributors:
-
-        - QualityLivingArea increased the predicted price the most.
-        - OverallQual and TotalBathrooms added additional value.
-        - House age contributed positively because the property is
-          newer than average.
-
-        Negative contributors:
-
-        - Smaller basement area reduced the prediction.
-        - Lower overall condition slightly decreased the estimated value.
-
-        This demonstrates how individual house characteristics combine
-        to produce the final prediction.
-        """
-    )
+ 
 
 def render_prediction_page():
 
