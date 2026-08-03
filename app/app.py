@@ -1371,10 +1371,7 @@ def render_model_interpretation():
         This section explains how the trained CatBoost model makes
         house price predictions.
 
-        Two complementary approaches are presented:
-
-        - **Feature Importance:** Shows which features contribute most
-          to the model overall.
+    
         - **SHAP Analysis:** Explains the direction and magnitude of
           feature impacts on predictions.
         """
@@ -1390,62 +1387,6 @@ def render_model_interpretation():
     )
 
 
-    # ========================================================
-    # FEATURE IMPORTANCE
-    # ========================================================
-
-    st.header(
-        "🌳 Feature Importance"
-    )
-
-
-    feature_images = list(
-        feature_folder.glob(
-            "feature_importance*.png"
-        )
-    )
-
-
-    if feature_images:
-
-        for image in feature_images:
-
-            st.image(
-                str(image),
-                caption="CatBoost Feature Importance",
-                use_container_width=True
-            )
-
-
-    else:
-
-        st.warning(
-            "Feature importance visualization not found."
-        )
-
-
-    st.markdown(
-        """
-        ### Interpretation
-
-        The feature importance analysis shows that engineered features
-        provide the strongest predictive signal.
-
-        - **QualityLivingArea** is the most influential feature because
-          it combines house size and quality.
-        - **TotalSF** captures the overall property footprint.
-        - **OverallQual** remains one of the strongest raw indicators
-          of house value.
-
-        Other important contributors include bathrooms, garage features,
-        and property age. Lower-ranked raw features are less influential
-        because their information is already captured by engineered
-        features.
-        """
-    )
-
-
-    st.divider()
 
 
     # ========================================================
