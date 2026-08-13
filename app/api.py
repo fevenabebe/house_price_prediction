@@ -1,13 +1,25 @@
 """
 FastAPI service for House Price Prediction.
 """
-
+import logging
 from typing import Any
-
+import time
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from src.predict import predict_price
+
+
+# ============================================================
+# LOGGING
+# ============================================================
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
+
+logger = logging.getLogger(__name__)
 
 
 # ============================================================
@@ -61,10 +73,12 @@ def root():
 
 @app.get("/health")
 def health_check():
+
+    logger.info("Health check requested")
+
     return {
         "status": "healthy"
     }
-
 
 # ============================================================
 # PREDICTION ENDPOINT
@@ -72,6 +86,12 @@ def health_check():
 
 @app.post("/predict")
 def predict(house: HouseInput):
+    start_time = time.perf_counter()
+
+    logger.info(
+        "Prediction request received for neighborhood=%s",
+        house.Neighborhood,
+    )
 
     try:
 
@@ -81,12 +101,28 @@ def predict(house: HouseInput):
             input_data
         )
 
+
+        duration = time.perf_counter() - start_time
+
+        logger.info(
+            "Prediction completed successfully: %.2f USD | duration=%.2fs",
+            prediction,
+            duration,
+        )
+
         return {
             "predicted_price": round(prediction, 2),
             "currency": "USD",
         }
 
     except Exception as e:
+
+        duration = time.perf_counter() - start_time
+
+        logger.exception(
+            "Prediction failed | duration=%.2fs",
+            duration,
+        )
 
         raise HTTPException(
             status_code=500,
