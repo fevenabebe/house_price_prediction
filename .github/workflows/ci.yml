@@ -35,3 +35,18 @@ jobs:
       - name: Run tests
         run: |
           pytest
+  
+  docker-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Streamlit Docker image
+        run: |
+          docker build -f Dockerfile -t house-price-app .
+
+      - name: Build FastAPI Docker image
+        run: |
+          docker build -f Dockerfile.api -t house-price-api .
