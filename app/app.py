@@ -322,8 +322,7 @@ PAGES = [
     "📈 Exploratory Data Analysis",
     "🤖 Model Evaluation",
     "🔎 Model Interpretation",
-    "🏡 House Price Prediction",
-    "👥 About Team",
+    "🏡 House Price Prediction"
 ]
 
 # ============================================================
@@ -1857,79 +1856,6 @@ def render_prediction_page():
                 f"Prediction failed: {e}"
             )
 
-# ============================================================
-# ABOUT TEAM PAGE
-# ============================================================
-
-def render_about_team():
-
-    render_hero(
-        title="👥 Group 1",
-        subtitle=(
-            "Developed as part of the Qiyas AI Training Program — building an "
-            "end-to-end machine learning regression system for predicting house "
-            "prices using the Ames Housing Dataset."
-        ),
-        badge="About the Team",
-    )
-
-    section_title("👨‍💻", "Team Members")
-
-    team_members = [
-        ("Feven Abebe", "🧑‍💻"),
-        ("Hailemichael Melese", "👨‍💻"),
-        ("Surafel Solomon", "👨‍💻"),
-    ]
-
-    cols = st.columns(len(team_members))
-
-    for col, (member, avatar) in zip(cols, team_members):
-
-        with col:
-
-            st.markdown(
-                f"""
-                <div class="team-card" style="text-align:center;">
-                    <div style="font-size:2.2rem;">{avatar}</div>
-                    <div style="font-family:'Poppins',sans-serif; font-weight:700; margin-top:6px;">
-                        {member}
-                    </div>
-                    <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">
-                        Group 1 Member
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-
-    st.divider()
-
-
-    section_title("📌", "Project Information")
-
-
-    st.write(
-        """
-        **Training Program:** Qiyas AI Training Program
-
-        **Project Type:** Machine Learning Regression Application
-
-        **Dataset:** Ames Housing Dataset
-
-        **Objective:** 
-        Develop a machine learning model capable of estimating house prices
-        based on property characteristics.
-        """
-    )
-
-
-    st.divider()
-
-
-    st.caption(
-        "Developed by Group 1 | Qiyas AI Training Program"
-    )
 
 # ============================================================
 # APPLICATION ENTRY POINT
@@ -1971,10 +1897,7 @@ def main():
         render_prediction_page()
 
 
-    elif page == "👥 About Team":
 
-        st.title("👥 About Team")
-        render_about_team()
 
 
 if __name__ == "__main__":
