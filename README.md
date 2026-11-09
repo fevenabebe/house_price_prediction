@@ -472,17 +472,6 @@ $184,289.84
 
 ---
 
-# Project Team
-
-**Qiyas Training Machine Learning Project**
-
-Group 1:
-
-1. Feven Abebe
-2. Hailemichael Melese
-3. Surafel Solomon
-
----
 
 # License
 
